@@ -4,8 +4,8 @@
 | Vai trò | Tên sinh viên | Nhiệm vụ đảm nhận | Mã nguồn phụ trách (Dự kiến) |
 | :--- | :--- | :--- | :--- |
 | **SV1** | Hoàng Nguyễn Nhật Anh | Tìm khoảng phân ly nghiệm, viết docstring và báo cáo P1 | |
-| **SV2** | Ngô Việt Hưng | Phương pháp chia đôi (sai số và n bước), viết docstring và báo cáo P2 | |
-| **SV3** | Mai Thị Quỳnh Hoa | Phương pháp dây cung (sai số và n bước), viết docstring và báo cáo P3 | |
+| **SV2** | Ngô Việt Hưng | Phương pháp chia đôi, viết docstring và báo cáo P2 | |
+| **SV3** | Mai Thị Quỳnh Hoa | Phương pháp dây cung, viết docstring và báo cáo P3 | |
 | **SV4** | Đỗ Hồng Vân | Đánh giá sai số, viết docstring và báo cáo P4 | |
 | **SV5** | Lê Thị Tâm | Viết bộ kiểm thử cho toàn nhóm, test ca biên, test chéo | |
 | **SV6** | Đỗ Yến Nhi | Chạy thực nghiệm so sánh, lập bảng sai số, vẽ đồ thị, nhận xét | |

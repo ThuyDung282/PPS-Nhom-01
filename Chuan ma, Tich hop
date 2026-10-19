@@ -1,0 +1,5 @@
+cd PPS-Nhom-01
+git mv "Bui Thuy Dung" "Chuẩn mã, tích hợp"
+git commit -m "Đổi tên file: Bui Thuy Dung → Chuẩn mã, tích hợp"
+git push origin main (hoặc tên branch bạn dùng)
+git mv + commit sẽ thực hiện rename trong một commit.

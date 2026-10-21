@@ -1,1 +1,9 @@
-
+import math
+def isolate_roots(f, a, b, step) -> list[tuple[float, float]]:
+if a >= b:
+        raise ValueError(f"Lỗi biên: Đầu mút trái a ({a}) phải nhỏ hơn đầu mút phải b ({b}).")
+if n <= 0:
+        raise ValueError(f"Lỗi biên: Số đoạn chia n ({n}) phải lớn hơn 0.")
+/// chia đoạn [a,b] thàh n đoạn bằng nhau 
+x = np.linspace(a, b, n + 1)
+    intervals = []

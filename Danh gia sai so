@@ -1,1 +1,9 @@
-
+import numpy as 
+def bisection_steps(a: float, b: float, eps: float) -> int:
+    if a >= b:
+        raise ValueError("Yêu cầu a < b ")
+    if eps <= 0: 
+        raise ValuaeError("Sai số eps phải lớn hơn 0 ")
+#công thức đánh giá sai số bước
+n=np.ceil(np.log2((b - a)/eps))
+return int(n)

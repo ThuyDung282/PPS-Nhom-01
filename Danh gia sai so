@@ -4,7 +4,7 @@ def bisection_steps(a: float, b: float, eps: float) -> int:
     """
     Tính số bước lặp lý thuyết tối thiểu của phương pháp chia đôi để đạt sai số eps.
 
-    Thuâth toán: Đánh giá số bước lặp Chia đôi (Bisection Step Estimation)
+    Thuật toán: Đánh giá số bước lặp Chia đôi (Bisection Step Estimation)
     Công thức sai số: e_n = (b - a) / (2^(n + 1)) <= eps
     => 2^(n + 1) >= (b - a) / eps  =>  n >= log2((b - a) / eps) - 1
 

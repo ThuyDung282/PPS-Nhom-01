@@ -32,7 +32,7 @@ def false_position_error(x_k: float, x_prev: float, m1: float, M1: float) -> flo
     """
     Đánh giá cận trên sai số của phương pháp dây cung qua hai bước lặp liên tiếp.
 
-    Tên thuật toán trong bài giảng: Đánh giá sai số Dây cung (False Position Error)
+  Tên thuật toán trong bài giảng: Đánh giá sai số Dây cung (False Position Error)
     Công thức trong bài giảng: |x_k - x*| <= ((M1 - m1) / m1) * |x_k - x_{k-1}|
 
     Require:

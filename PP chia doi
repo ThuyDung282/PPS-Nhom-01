@@ -1,1 +1,67 @@
+import warnings
 
+def bisection(f, a, b, eps=1e-5, n_max=50):
+    """Giải phương trình f(x) = 0 bằng phương pháp chia đôi
+
+    Require (Đầu vào):
+        f     : hàm số liên tục, nhận một số thực, trả về một số thực
+        a, b  : hai đầu khoảng phân ly nghiệm, a < b và f(a)f(b) < 0
+        eps   : sai số cho trước, eps > 0
+        n_max : số bước lặp tối đa cho trước, n_max >= 0
+
+    Ensure (Đầu ra):
+        Trả về bộ (x, k, err):
+        x   : nghiệm gần đúng ở bước lặp cuối cùng
+        k   : số bước lặp đã thực hiện
+        err : sai số tại bước lặp cuối, tính bằng (b - a)/2 của khoảng hiện tại
+
+    Điều kiện dừng: err <= eps, hoặc k đạt n_max + 1, hoặc f(a)f(x) = 0
+
+    Lưu ý: Nếu a >= b, eps <= 0, n_max < 0, hoặc f(a)f(b) > 0
+            (khi đó (a; b) không phải khoảng phân ly nghiệm)
+
+           Nếu hết n_max bước mà chưa đạt sai số eps
+    """
+    # Xử lý tình huống biên (R6), nằm ngoài pseudocode
+    if not a < b:
+        raise ValueError("Cần a < b.")
+    if eps <= 0:
+        raise ValueError("Sai số eps phải dương.")
+    if n_max < 0:
+        raise ValueError("n_max phải không âm.")
+
+    fa = f(a)
+    fb = f(b)
+    if fa == 0:                      # Đầu mút a đã là nghiệm
+        return float(a), 0, 0.0
+    if fb == 0:                      # Đầu mút b đã là nghiệm
+        return float(b), 0, 0.0
+    if fa * fb > 0:
+        raise ValueError(
+            "f(a)f(b) > 0: (a; b) không phải khoảng phân ly nghiệm.")
+
+    # Xây dựng thuật toán
+    i = 0
+    err = (b - a) / 2              
+    x = (a + b) / 2                  # Để hàm vẫn trả kết quả hợp lệ khi eps lớn hơn nửa độ rộng khoảng ban đầu
+    while err > eps and i < n_max + 1:   
+        x = (a + b) / 2              
+        fx = f(x)                   
+        if fa * fx == 0:           
+            return x, i + 1, 0.0   
+        elif fa * fx > 0:            
+            a = x                    
+            fa = fx                  # lưu f(a) mới
+            err = (b - a) / 2
+        else:                       
+            b = x                  
+            err = (b - a) / 2
+        i = i + 1                
+
+    if err > eps:
+        warnings.warn(
+            f"Hết n_max= {n_max} bước nhưng chưa đạt sai số eps={eps} "
+            f"(err={err}).",
+            UserWarning,
+        )
+    return x, i, err

@@ -1,9 +1,29 @@
 import numpy as 
+#PP CHIA ĐÔI
 def bisection_steps(a: float, b: float, eps: float) -> int:
+    """
+    Tính số bước lặp lý thuyết tối thiểu của phương pháp chia đôi để đạt sai số eps.
+
+    Tên thuật toán trong bài giảng: Đánh giá số bước lặp Chia đôi (Bisection Step Estimation)
+    Công thức sai số trong sách: e_n = (b - a) / (2^(n + 1)) <= eps
+    => 2^(n + 1) >= (b - a) / eps  =>  n >= log2((b - a) / eps) - 1
+
+    Require:
+        a (float): Biên trái khoảng cách ly nghiệm (a < b).
+        b (float): Biên phải khoảng cách ly nghiệm.
+        eps (float): Độ chính xác yêu cầu (eps > 0).
+
+    Ensure:
+        int: Số bước lặp tối thiểu n = max(0, ceil(log2((b - a) / eps)) - 1).
+
+    Raises:
+        ValueError: Nếu b <= a hoặc eps <= 0.
+    """
     if a >= b:
         raise ValueError("Yêu cầu a < b ")
     if eps <= 0: 
-        raise ValuaeError("Sai số eps phải lớn hơn 0 ")
+        raise ValueError("Sai số eps phải lớn hơn 0 ")
 #công thức đánh giá sai số bước
-n=np.ceil(np.log2((b - a)/eps))
-return int(n)
+n=np.ceil(np.log2((b - a) / eps))-1
+return max(0, int(n))
+#PP DÂY CUNG

@@ -1,9 +1,18 @@
-import math
-def isolate_roots(f, a, b, step) -> list[tuple[float, float]]:
-if a >= b:
-        raise ValueError(f"Lỗi biên: Đầu mút trái a ({a}) phải nhỏ hơn đầu mút phải b ({b}).")
-if n <= 0:
-        raise ValueError(f"Lỗi biên: Số đoạn chia n ({n}) phải lớn hơn 0.")
-/// chia đoạn [a,b] thàh n đoạn bằng nhau 
-x = np.linspace(a, b, n + 1)
-    intervals = []
+import numpy as np
+
+def tim_phanly(f, x_min, x_max, step=0.5):
+    """
+    Tìm tất cả các khoảng [a, b] sao cho f(a)*f(b) < 0 (tức là có nghiệm trong khoảng)
+    """
+    brackets = []
+    # Thêm step để đảm bảo x_max được xét nếu nó là bội của step tính từ x_min
+    x_values = np.arange(x_min, x_max + step, step)
+    
+    for i in range(len(x_values) - 1):
+        a, b = x_values[i], x_values[i + 1]
+        # Kiểm tra xem có đổi dấu không, cho phép sai số nhỏ để xử lý số thực
+        if f(a) * f(b) < 0:
+            brackets.append((a, b))
+            
+    return brackets
+

@@ -1,1 +1,80 @@
 
+def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
+
+    # Kiểm tra dữ liệu đầu vào
+    if not callable(f):
+        raise TypeError("f phải là một hàm số.")
+
+    if a >= b:
+        raise ValueError("Phải có a < b.")
+
+    if eps <= 0:
+        raise ValueError("eps phải lớn hơn 0.")
+
+    if not isinstance(n_max, int) or isinstance(n_max, bool) or n_max < 1:
+        raise ValueError("n_max phải là số nguyên dương.")
+
+    # Tính giá trị hàm tại hai đầu mút
+    fa = f(a)
+    fb = f(b)
+
+    # Xử lý trường hợp đầu mút là nghiệm
+    if fa == 0:
+        return float(a), 0, 0.0
+
+    if fb == 0:
+        return float(b), 0, 0.0
+
+    # Kiểm tra điều kiện đổi dấu
+    if fa * fb > 0:
+        raise ValueError(
+            "Khoảng [a, b] không thỏa mãn f(a)*f(b) < 0."
+        )
+
+    # Dòng 1–3: Nếu f(a) < 0 thì chọn x0 = a
+    if fa < 0:
+        x0 = a
+        fixed_point = b
+        f_fixed = fb
+    else:
+        # Dòng 5–6: Ngược lại, chọn x0 = b
+        x0 = b
+        fixed_point = a
+        f_fixed = fa
+
+    # Dòng 1: Lặp từ 1 đến n_max
+    for i in range(1, n_max + 1):
+        fx0 = f(x0)
+
+        # Kiểm tra mẫu số của công thức dây cung
+        denominator = fx0 - f_fixed
+
+        if denominator == 0:
+            raise ZeroDivisionError(
+                "Mẫu số bằng 0, không thể tiếp tục tính."
+            )
+
+        # Dòng 4 hoặc 7: Tính nghiệm gần đúng mới
+        x_new = (
+            x0 - fx0 * (x0 - fixed_point) / denominator
+        )
+
+        # Dòng 9: Tính sai số err = |x_new - x0|
+        err = abs(x_new - x0)
+
+        # Dòng 10–11: Nếu err < eps thì dừng
+        if err < eps:
+            return float(x_new), i, float(err)
+
+        # Cập nhật điểm gần đúng cho lần lặp tiếp theo
+        x0 = x_new
+
+    # Dòng 14: Hết số bước lặp tối đa mà chưa hội tụ
+    import warnings
+    warnings.warn(
+        "Đã đạt n_max nhưng sai số chưa nhỏ hơn eps.",
+        RuntimeWarning
+    )
+
+    return float(x_new), n_max, float(err)
+

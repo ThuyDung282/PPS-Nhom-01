@@ -1,4 +1,4 @@
-import numpy as 
+import numpy as np
 #PP CHIA ĐÔI
 def bisection_steps(a: float, b: float, eps: float) -> int:
     """

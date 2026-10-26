@@ -8,25 +8,25 @@ def bisection_steps(a: float, b: float, eps: float) -> int:
     Công thức sai số: e_n = (b - a) / (2^(n + 1)) <= eps
     => 2^(n + 1) >= (b - a) / eps  =>  n >= log2((b - a) / eps) - 1
 
-    Require:
+    Đầu vào (Require):
         a (float): Biên trái khoảng cách ly nghiệm (a < b).
         b (float): Biên phải khoảng cách ly nghiệm.
         eps (float): Độ chính xác yêu cầu (eps > 0).
 
-    Ensure:
+    Đầu ra (Ensure):
         int: Số bước lặp tối thiểu n = max(0, ceil(log2((b - a) / eps)) - 1).
 
-    Raises:
+    Báo lỗi (Raises):
         ValueError: Nếu b <= a hoặc eps <= 0.
     """
 # Xử lý tình huống biên(R6)
-    if b <= a:
+    if a >= b:
         raise ValueError("Khoảng cách ly không hợp lệ: yêu cầu b > a ")
     if eps <= 0: 
         raise ValueError("Sai số eps phải lớn hơn 0")
 #Đánh giá sai số bước lặp
     n=np.ceil(np.log2((b - a) / eps))-1
-    return max(0, n)
+    return max(0, int(n))
 #PP DÂY CUNG
 def false_position_error(x_k: float, x_prev: float, m1: float, M1: float) -> float:
     """
@@ -35,16 +35,16 @@ def false_position_error(x_k: float, x_prev: float, m1: float, M1: float) -> flo
     Thuật toán : Đánh giá sai số Dây cung (False Position Error)
     Công thức: |x_k - x*| <= ((M1 - m1) / m1) * |x_k - x_{k-1}|
 
-    Require:
+    Đầu vào (Require):
         x_k (float): Giá trị nghiệm xấp xỉ ở bước lặp thứ k.
         x_prev (float): Giá trị nghiệm xấp xỉ ở bước lặp thứ k-1.
         m1 (float): Cận dưới của |f'(x)| trên khoảng cách ly nghiệm (m1 > 0).
         M1 (float): Cận trên của |f'(x)| trên khoảng cách ly nghiệm (M1 >= m1).
 
-    Ensure:
+    Đầu ra (Ensure):
         float: Giá trị cận trên sai số tuyệt đối tại bước lặp k.
 
-    Raises:
+    Báo lỗi (Raises):
         ValueError: Nếu m1 <= 0 hoặc M1 < m1.
     """
 # Xử lý tình huống biên ()

@@ -9,7 +9,7 @@ def bisection_steps(a, b, eps) -> int:
     Công thức sai số: e_n = (b - a) / 2^(n + 1) <= eps
     => 2^(n + 1) >= (b - a) / eps => n >= log2((b - a) / eps) - 1
 
-    Require (Đầu ):
+    Require (Đầu vào):
         a (float): Biên trái khoảng cách ly nghiệm (a < b)
         b (float): Biên phải khoảng cách ly nghiệm
         eps (float): Độ chính xác yêu cầu (eps > 0)

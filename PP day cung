@@ -1,5 +1,25 @@
 
 def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
+    """
+    Tìm nghiệm gần đúng của f(x) = 0 bằng phương pháp dây cung.
+
+    Require:
+        f: Hàm số liên tục trên [a, b].
+        a, b: Hai đầu mút, a < b.
+        eps: Sai số cho phép, eps > 0.
+        n_max: Số bước lặp tối đa, n_max là số nguyên dương.
+        Hai đầu mút trái dấu, trừ khi một đầu mút là nghiệm.
+
+    Ensure:
+        Trả về (xn, i, err):
+            xn: Nghiệm gần đúng.
+            i: Số bước lặp đã thực hiện.
+            err: Sai số giữa hai lần lặp liên tiếp.
+        Cảnh báo nếu hết n_max bước mà chưa đạt eps.
+
+    Algorithm:
+        Phương pháp dây cung (Algorithm 6 trong giáo trình).
+    """
 
     # Kiểm tra dữ liệu đầu vào
     if not callable(f):
@@ -27,54 +47,58 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
 
     # Kiểm tra điều kiện đổi dấu
     if fa * fb > 0:
-        raise ValueError(
-            "Khoảng [a, b] không thỏa mãn f(a)*f(b) < 0."
-        )
+        raise ValueError( "Khoảng [a, b] không thỏa mãn f(a)*f(b) < 0." )
 
-    # Dòng 1–3: Nếu f(a) < 0 thì chọn x0 = a
-    if fa < 0:
-        x0 = a
-        fixed_point = b
-        f_fixed = fb
-    else:
-        # Dòng 5–6: Ngược lại, chọn x0 = b
-        x0 = b
-        fixed_point = a
-        f_fixed = fa
+   xn = 0.0
+    err = 0.0
 
-    # Dòng 1: Lặp từ 1 đến n_max
+    # dong 1: for i = 1 -> n_max do
     for i in range(1, n_max + 1):
-        fx0 = f(x0)
 
-        # Kiểm tra mẫu số của công thức dây cung
-        denominator = fx0 - f_fixed
+        # dong 2-3: nếu f(a) < 0 thì x0 <- a 
+        if fa < 0:
+            x0 = a
 
-        if denominator == 0:
-            raise ZeroDivisionError(
-                "Mẫu số bằng 0, không thể tiếp tục tính."
-            )
+            # dong 4: Tính xn <- xn-1 - f(xn-1)*(xn-1 - b) / (f(xn-1) - f(b))
+            mau_so = f(x0) - fb
+            if mau_so == 0:
+                raise ZeroDivisionError("Mẫu số bằng 0")
+            xn = x0 - f(x0) * (x0 - b) / mau_so
 
-        # Dòng 4 hoặc 7: Tính nghiệm gần đúng mới
-        x_new = (
-            x0 - fx0 * (x0 - fixed_point) / denominator
-        )
+        else:
+            # dong 5-6: ngược lại , x0 <- b
+            x0 = b
 
-        # Dòng 9: Tính sai số err = |x_new - x0|
-        err = abs(x_new - x0)
+            # dong 7: Tính xn <- xn-1 - f(xn-1)*(xn-1 - a) / (f(xn-1) - f(a))
+            mau_so = f(x0) - fa
+            if mau_so == 0:
+                raise ZeroDivisionError("Mẫu số bằng 0")
+            xn = x0 - f(x0) * (x0 - a) / mau_so
 
-        # Dòng 10–11: Nếu err < eps thì dừng
+        # dong 8: end if
+
+        # dong 9: Tính err = |xn - x0|
+        err = abs(xn - x0)
+
+        # dong 10-11: nếu err < eps thì thuật toán dừng và in ra 
         if err < eps:
-            return float(x_new), i, float(err)
+            return float(xn), i, float(err)
 
-        # Cập nhật điểm gần đúng cho lần lặp tiếp theo
-        x0 = x_new
+        # dong 12: end if 
 
-    # Dòng 14: Hết số bước lặp tối đa mà chưa hội tụ
+        # Cập nhật lại khoảng tìm nghiệm [a, b] để thuật toán hội tụ
+        fn = f(xn)
+        if fa * fn < 0:
+            b = xn
+            fb = fn
+        else:
+            a = xn
+            fa = fn
+
+    # dong 13: end for
+    # Hết số bước lặp tối đa mà chưa hội tụ
     import warnings
-    warnings.warn(
-        "Đã đạt n_max nhưng sai số chưa nhỏ hơn eps.",
-        RuntimeWarning
-    )
+    warnings.warn("Chưa đạt sai số yêu cầu sau số bước lặp tối đa", RuntimeWarning)
 
-    return float(x_new), n_max, float(err)
-
+    # dong 14: return xn , i, err
+    return float(xn), n_max, float(err) 

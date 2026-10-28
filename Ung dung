@@ -28,9 +28,7 @@ from danh_gia_sai_so import bisection_steps
 from false_position import false_position
 from isolate_roots import isolate_roots
 
-# ----------------------------------------------------------------------------
 # Tham so de bai
-# ----------------------------------------------------------------------------
 P_DEFAULT = 500.0    # so tien vay (trieu dong)
 A_DEFAULT = 12.0     # tien tra moi thang (trieu dong)
 N_DEFAULT = 60       # so thang
@@ -45,10 +43,7 @@ R_MIN_NEG = -0.99    # r > -1 de (1 + r) > 0
 R_MAX_NEG = -1e-6
 SCAN_STEP = 0.01
 
-
-# ----------------------------------------------------------------------------
 # Mo hinh hoa
-# ----------------------------------------------------------------------------
 def annuity_f(r: float, A: float, P: float, N: int) -> float:
     """Ham muc tieu f(r) = A*(1 - (1+r)^(-N))/r - P cua bai toan vay tra gop.
 
@@ -70,19 +65,15 @@ def annuity_f(r: float, A: float, P: float, N: int) -> float:
     he_so = -np.expm1(-N * np.log1p(r)) / r
     return float(A * he_so - P)
 
-
 def make_f(A: float, P: float, N: int):
     """Tao ham mot bien f(r) tu bo tham so (A, P, N) de dua vao P1-P3.
 
     Require: A, P > 0, N nguyen duong.
     Ensure: tra ve ham f(r) -> float.
     """
-
     def f(r: float) -> float:
         return annuity_f(r, A, P, N)
-
     return f
-
 
 def _check_params(A: float, P: float, N: int, eps: float, n_max: int) -> None:
     """Kiem tra tham so dau vao (R6). Bao loi ValueError neu khong hop le."""
@@ -95,10 +86,7 @@ def _check_params(A: float, P: float, N: int, eps: float, n_max: int) -> None:
     if n_max < 1:
         raise ValueError("n_max phai >= 1.")
 
-
-# ----------------------------------------------------------------------------
 # Cach ly nghiem + giai bang hai phuong phap
-# ----------------------------------------------------------------------------
 def bracket_interest_rate(
     A: float, P: float, N: int, step: float = SCAN_STEP, allow_negative: bool = False
 ) -> tuple[float, float]:
@@ -170,10 +158,7 @@ def find_interest_rate(
     f = make_f(A, P, N)
     return cac_phuong_phap[method](f, a, b, eps, n_max)
 
-
-# ----------------------------------------------------------------------------
 # Khao sat theo A
-# ----------------------------------------------------------------------------
 def survey_payment(
     A_values, P: float = P_DEFAULT, N: int = N_DEFAULT,
     eps: float = EPS_DEFAULT, n_max: int = N_MAX_DEFAULT,
@@ -256,10 +241,7 @@ def plot_survey(ket_qua: list[dict], P: float, N: int, path: str = "khao_sat_lai
     fig.savefig(path, dpi=150)
     plt.close(fig)
 
-
-# ----------------------------------------------------------------------------
 # Chay thu
-# ----------------------------------------------------------------------------
 def main() -> None:
     """Chay toan bo bai toan ung dung va in ket qua."""
     P, A, N = P_DEFAULT, A_DEFAULT, N_DEFAULT

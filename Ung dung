@@ -132,27 +132,27 @@ def ve_do_thi(ket_qua, ten_file="khao_sat_lai_suat.png"):
     Require: ket_qua từ khao_sat; ten_file là tên file ảnh.
     Ensure: tạo file ảnh tại ten_file.
     """
-    a_ds = [d[0] for d in ket_qua]
-    r_cd = [100 * d[1] for d in ket_qua]
-    r_dc = [100 * d[3] for d in ket_qua]
-    k_cd = [d[2] for d in ket_qua]
-    k_dc = [d[4] for d in ket_qua]
+   a_ds = [d[0] for d in ket_qua]        # danh sách các giá trị A: 9, 9.5, ..., 15
+   r_cd = [100 * d[1] for d in ket_qua]  # r của chia đôi, nhân 100 để đổi sang %
+   r_dc = [100 * d[3] for d in ket_qua]  # r của dây cung, cũng đổi sang %
+   k_cd = [d[2] for d in ket_qua]        # số bước lặp của chia đôi
+   k_dc = [d[4] for d in ket_qua]        # số bước lặp của dây cung
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))
 
-    ax1.plot(a_ds, r_cd, "o-", label="Chia đôi")
-    ax1.plot(a_ds, r_dc, "x--", label="Dây cung")
-    ax1.set_xlabel("A (triệu đồng/tháng)")
-    ax1.set_ylabel("r (%/tháng)")
-    ax1.set_title("Lãi suất tháng r theo tiền trả A")
-    ax1.grid(True)
-    ax1.legend()
+    ax1.plot(a_ds, r_cd, "o-", label="Chia đôi")   # vẽ đường: trục x là A, trục y là r
+    ax1.plot(a_ds, r_dc, "x--", label="Dây cung")  # đường thứ hai
+    ax1.set_xlabel("A (triệu đồng/tháng)")         # tên trục ngang
+    ax1.set_ylabel("r (%/tháng)")                  # tên trục dọc
+    ax1.set_title("Lãi suất tháng r theo tiền trả A")  
+    ax1.grid(True)                                 # bật lưới 
+    ax1.legend()                                   # hiện chú thích (dùng các label ở trên)
 
     ax2.plot(a_ds, k_cd, "o-", label="Chia đôi")
     ax2.plot(a_ds, k_dc, "x--", label="Dây cung")
     ax2.set_xlabel("A (triệu đồng/tháng)")
     ax2.set_ylabel("Số bước lặp k")
-    ax2.set_title("Số bước lặp với eps = 1e-8")
+    ax2.set_title("Số bước lặp với eps = 10^-8")
     ax2.grid(True)
     ax2.legend()
 

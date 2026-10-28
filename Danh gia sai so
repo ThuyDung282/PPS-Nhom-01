@@ -1,59 +1,41 @@
 import numpy as np
 
 # PP CHIA ĐÔI
-def bisection_steps(a, b, eps) -> int:
+def bisection_steps(a: float, b: float, eps: float) -> int:
     """
-    Tính số bước lặp lý thuyết tối thiểu của phương pháp chia đôi để đạt sai số eps.
-
-    Thuật toán: Đánh giá số bước lặp Chia đôi (Bisection Step Estimation)
-    Công thức sai số: e_n = (b - a) / 2^(n + 1) <= eps
-    => 2^(n + 1) >= (b - a) / eps => n >= log2((b - a) / eps) - 1
-
-    Require (Đầu vào):
-        a (float): Biên trái khoảng cách ly nghiệm (a < b)
-        b (float): Biên phải khoảng cách ly nghiệm
-        eps (float): Độ chính xác yêu cầu (eps > 0)
-
-    Ensure(Đầu ra):
-        int: Số bước lặp tối thiểu n = max(0, ceil(log2((b - a) / eps)) - 1)
+    Tinh so buoc lap can thiet cua phuong phap chia doi de dat sai so eps.
+    Dua tren danh gia sai so tien nghiem: (b - a) / (2^(n+1)) <= eps
+    
+    Require (Dau vao):
+        a (float): Can duoi cua khoang phan ly nghiem.
+        b (float): Can tren cua khoang phan ly nghiem.
+        eps (float): Do chinh xac cho truoc (phai duong).
+        
+    Ensure (Dau ra):
+        int: So buoc lap toi thieu n thoa man sai so <= eps.
+        
+    Thuat toan: Danh gia sai so phuong phap chia doi.
     """
-    # dong 1 - Kiem tra dieu kien dau vao
-    if a >= b:
-        raise ValueError("Khoảng cách ly không hợp lệ: yêu cầu b > a")
+    # R6: Xu ly tinh huong bien
     if eps <= 0:
-        raise ValueError("Sai số eps phải lớn hơn 0")
-
-    # dong 2 - Tinh so buoc lap theo cong thuc
-    n = np.ceil(np.log2((b - a) / eps)) - 1
-    #dong 3 - Tra ve ket qua
-    return max(0, int(n))
-#Bổ sung 
-def bisection_error(a, b, n) -> float:
-    """
-    Đánh giá cận trên sai số tuyệt đối của phương pháp chia đôi tại bước lặp thứ n.
-
-    Thuật toán: Đánh giá giá trị sai số Chia đôi (Bisection Absolute Error)
-    Công thức sai số: |x_n - x_star| <= (b - a) / 2^(n + 1)
-
-    Require (Đầu vào):
-        a (float): Biên trái khoảng cách ly nghiệm (a < b)
-        b (float): Biên phải khoảng cách ly nghiệm
-        n (int): Số bước lặp đã thực hiện (n >= 0)
-
-    Ensure (Đầu ra):
-        float: Giá trị cận trên sai số tuyệt đối tại bước lặp n
-    """
-    # dong 1 - Kiem tra dieu kien dau vao
+        raise ValueError("Do chinh xac eps phai la mot so duong lon hon 0")
     if a >= b:
-        raise ValueError("Khoảng cách ly không hợp lệ: yêu cầu b > a")
-    if n < 0:
-        raise ValueError("Số bước lặp n phải lớn hơn hoặc bằng 0")
-
-    # dong 2 - Tinh sai so tuyet doi theo cong thuc (b - a) / 2^(n + 1)
-    err = (b - a) / (2 ** (n + 1))
-
-    # dong 3 - Tra ve ket qua sai so dang float
-    return float(err)
+        raise ValueError("Can duoi a phai nho hon can tren b")
+        
+    # # Thuat toan - Dong 1 - Khoi tao so buoc lap ban dau n = 0
+    n = 0
+    # Sai so tai buoc ban dau n = 0 ung voi cong thuc: (b - a) / 2^(0+1) = (b - a) / 2
+    err = (b - a) / 2  
+    
+    # # Thuat toan - Dong 2 - Vong lap danh gia sai so so voi dieu kien dung eps
+    while err > eps:
+        # # Thuat toan - Dong 3 - Tang so buoc lap len 1
+        n += 1         
+        # # Thuat toan - Dong 4 - Sai so tai buoc n tiep theo tuong ung voi: (b - a) / 2^(n+1)
+        err = err / 2  
+        
+    # # Thuat toan - Dong 5 - Tra ve ket qua cuoi cung
+    return n
 
 # PP DÂY CUNG
 def false_position_error(x_k, x_prev, m1, M1) -> float:

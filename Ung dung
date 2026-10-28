@@ -1,1 +1,295 @@
+Bai toan ung dung: tim lai suat vay tra gop
 
+Bai toan: vay P trieu dong, tra deu A trieu dong moi thang trong N thang.
+Lai suat thang r la nghiem cua
+
+    f(r) = A * (1 - (1 + r)^(-N)) / r - P = 0.
+
+Phan nay CHI GOI cac ham do nhom tu cai dat (P1-P4); khong dung
+numpy.linalg.*, scipy.* (R3). numpy chi dung de tinh toan co ban/ve do thi.
+
+Cach chay:
+    python ung_dung_lai_suat.py
+"""
+from __future__ import annotations
+
+import warnings
+
+import matplotlib
+
+matplotlib.use("Agg")  # luu anh ra file, khong can mo cua so
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Ten module theo file Test cua nhom: isolate_roots.py (P1), bisection.py (P2),
+# false_position.py (P3), danh_gia_sai_so.py (P4).
+from bisection import bisection
+from danh_gia_sai_so import bisection_steps
+from false_position import false_position
+from isolate_roots import isolate_roots
+
+# ----------------------------------------------------------------------------
+# Tham so de bai
+# ----------------------------------------------------------------------------
+P_DEFAULT = 500.0    # so tien vay (trieu dong)
+A_DEFAULT = 12.0     # tien tra moi thang (trieu dong)
+N_DEFAULT = 60       # so thang
+EPS_DEFAULT = 1e-8   # sai so yeu cau
+N_MAX_DEFAULT = 200  # so buoc lap toi da
+R_REFERENCE = 0.012833  # dap so de bai: r ~ 1,2833 %/thang
+
+# Cach quet khoang cach ly nghiem (P1)
+R_MIN_POS = 1e-6     # r > 0: tranh r = 0 (bieu thuc 0/0)
+R_MAX_POS = 1.0      # r = 100 %/thang, du lon de f(r) < 0
+R_MIN_NEG = -0.99    # r > -1 de (1 + r) > 0
+R_MAX_NEG = -1e-6
+SCAN_STEP = 0.01
+
+
+# ----------------------------------------------------------------------------
+# Mo hinh hoa
+# ----------------------------------------------------------------------------
+def annuity_f(r: float, A: float, P: float, N: int) -> float:
+    """Ham muc tieu f(r) = A*(1 - (1+r)^(-N))/r - P cua bai toan vay tra gop.
+
+    Dung log1p/expm1 de tranh mat chinh xac khi r rat nho (1 - (1+r)^(-N)
+    la hieu hai so gan nhau). Tai r = 0 dung gioi han A*N - P.
+
+    Require:
+        r > -1 (de 1 + r > 0); A, P > 0; N nguyen duong.
+    Ensure:
+        tra ve f(r) (float). Khi r ~ 0 tra ve gioi han A*N - P.
+
+    Thuat toan: khong phai thuat toan bai giang, la ham muc tieu cua bai toan.
+    """
+    if r <= -1.0:  # dieu kien ap dung: 1 + r phai duong
+        raise ValueError("Can r > -1 de (1 + r)^(-N) co nghia.")
+    if abs(r) < 1e-12:  # gioi han r -> 0 cua A*(1-(1+r)^-N)/r la A*N
+        return float(A * N - P)
+    # (1 - (1+r)^(-N)) = -expm1(-N * log1p(r))
+    he_so = -np.expm1(-N * np.log1p(r)) / r
+    return float(A * he_so - P)
+
+
+def make_f(A: float, P: float, N: int):
+    """Tao ham mot bien f(r) tu bo tham so (A, P, N) de dua vao P1-P3.
+
+    Require: A, P > 0, N nguyen duong.
+    Ensure: tra ve ham f(r) -> float.
+    """
+
+    def f(r: float) -> float:
+        return annuity_f(r, A, P, N)
+
+    return f
+
+
+def _check_params(A: float, P: float, N: int, eps: float, n_max: int) -> None:
+    """Kiem tra tham so dau vao (R6). Bao loi ValueError neu khong hop le."""
+    if A <= 0 or P <= 0:
+        raise ValueError("A va P phai duong.")
+    if int(N) != N or N < 1:
+        raise ValueError("N phai la so nguyen duong.")
+    if eps <= 0:
+        raise ValueError("eps phai duong.")
+    if n_max < 1:
+        raise ValueError("n_max phai >= 1.")
+
+
+# ----------------------------------------------------------------------------
+# Cach ly nghiem + giai bang hai phuong phap
+# ----------------------------------------------------------------------------
+def bracket_interest_rate(
+    A: float, P: float, N: int, step: float = SCAN_STEP, allow_negative: bool = False
+) -> tuple[float, float]:
+    """Tim khoang cach ly nghiem [a; b] cua f(r) bang isolate_roots (P1).
+
+    Phan tich: f giam theo r, f(0+) = A*N - P, f(+inf) = -P < 0.
+      - A*N > P : co dung 1 nghiem r > 0, quet tren [1e-6; 1].
+      - A*N < P : khong co nghiem duong (f < 0 moi r > 0); nghiem
+                  nam trong (-1; 0), chi tim khi allow_negative = True.
+      - A*N = P : nghiem la r = 0 (suy bien), khong co khoang cach ly.
+
+    Require: A, P > 0; N nguyen duong; step > 0.
+    Ensure: tra ve (a, b) voi f(a) f(b) < 0.
+    Raises: ValueError neu khong co nghiem duong hoac khong tach duoc nghiem.
+    """
+    _check_params(A, P, N, 1.0, 1)
+    tong_tra = A * N
+    if np.isclose(tong_tra, P, rtol=0.0, atol=1e-9):
+        raise ValueError("A*N = P: nghiem la r = 0 (lai suat 0), khong co khoang cach ly.")
+    if tong_tra < P:
+        if not allow_negative:
+            raise ValueError(
+                "A*N < P: tong tien tra nho hon so tien vay, khong co lai suat duong "
+                "(f(r) < 0 voi moi r > 0)."
+            )
+        lo, hi = R_MIN_NEG, R_MAX_NEG
+    else:
+        lo, hi = R_MIN_POS, R_MAX_POS
+
+    f = make_f(A, P, N)
+    khoang = isolate_roots(f, lo, hi, step)  # P1
+    if len(khoang) == 0:
+        raise ValueError("Khong tach duoc khoang chua nghiem (thu giam step hoac doi [lo; hi]).")
+    if len(khoang) > 1:  # f don dieu nen khong xay ra; canh bao neu P1 tra ve nhieu hon
+        warnings.warn(f"isolate_roots tra ve {len(khoang)} khoang, lay khoang dau tien.")
+    return khoang[0]
+
+
+def find_interest_rate(
+    A: float = A_DEFAULT,
+    P: float = P_DEFAULT,
+    N: int = N_DEFAULT,
+    eps: float = EPS_DEFAULT,
+    n_max: int = N_MAX_DEFAULT,
+    method: str = "bisection",
+    allow_negative: bool = False,
+) -> tuple[float, int, float]:
+    """Tim lai suat thang r bang chia doi (P2) hoac day cung (P3).
+
+    Require:
+        A, P > 0; N nguyen duong; eps > 0; n_max >= 1;
+        method thuoc {"bisection", "false_position"}.
+    Ensure:
+        tra ve (r, k, err): nghiem xap xi, so buoc lap, sai so uoc luong
+        (do P2/P3 tra ve). Truong hop A*N = P tra ve (0.0, 0, 0.0).
+    Raises:
+        ValueError neu method sai, tham so sai, hoac A*N <= P ma
+        allow_negative = False.
+    """
+    cac_phuong_phap = {"bisection": bisection, "false_position": false_position}
+    if method not in cac_phuong_phap:
+        raise ValueError(f"method phai thuoc {list(cac_phuong_phap)}")
+    _check_params(A, P, N, eps, n_max)
+
+    if np.isclose(A * N, P, rtol=0.0, atol=1e-9) and allow_negative:
+        return 0.0, 0, 0.0  # nghiem suy bien r = 0
+
+    a, b = bracket_interest_rate(A, P, N, allow_negative=allow_negative)
+    f = make_f(A, P, N)
+    return cac_phuong_phap[method](f, a, b, eps, n_max)
+
+
+# ----------------------------------------------------------------------------
+# Khao sat theo A
+# ----------------------------------------------------------------------------
+def survey_payment(
+    A_values, P: float = P_DEFAULT, N: int = N_DEFAULT,
+    eps: float = EPS_DEFAULT, n_max: int = N_MAX_DEFAULT,
+) -> list[dict]:
+    """Khao sat lai suat r khi tien tra hang thang A thay doi.
+
+    Require: A_values la day cac so duong; P, N, eps, n_max hop le.
+    Ensure: tra ve danh sach dict (moi A mot dong) gom cac khoa:
+        A, AN, loai ("r>0" | "r=0" | "r<0"), r_bis, k_bis, r_fp, k_fp,
+        k_ly_thuyet (so buoc ly thuyet cua chia doi, None neu r = 0).
+    """
+    ket_qua = []
+    for A in A_values:
+        A = float(A)
+        if np.isclose(A * N, P, rtol=0.0, atol=1e-9):
+            loai = "r=0"
+        elif A * N > P:
+            loai = "r>0"
+        else:
+            loai = "r<0"
+
+        dong = {"A": A, "AN": A * N, "loai": loai}
+        if loai == "r=0":
+            dong.update(r_bis=0.0, k_bis=0, r_fp=0.0, k_fp=0, k_ly_thuyet=None)
+        else:
+            a, b = bracket_interest_rate(A, P, N, allow_negative=True)
+            r_b, k_b, _ = find_interest_rate(A, P, N, eps, n_max, "bisection", True)
+            r_f, k_f, _ = find_interest_rate(A, P, N, eps, n_max, "false_position", True)
+            dong.update(
+                r_bis=r_b, k_bis=k_b, r_fp=r_f, k_fp=k_f,
+                k_ly_thuyet=bisection_steps(a, b, eps),  # P4
+            )
+        ket_qua.append(dong)
+    return ket_qua
+
+
+def print_survey_table(ket_qua: list[dict]) -> None:
+    """In bang ket qua khao sat ra man hinh. Require: ket_qua tu survey_payment."""
+    print(f"{'A':>7} {'A*N':>7} {'loai':>5} {'r_chia_doi(%)':>14} {'k':>3} "
+          f"{'r_day_cung(%)':>14} {'k':>3} {'k_ly_thuyet':>11}")
+    for d in ket_qua:
+        kt = "-" if d["k_ly_thuyet"] is None else str(d["k_ly_thuyet"])
+        print(f"{d['A']:7.3f} {d['AN']:7.1f} {d['loai']:>5} {100*d['r_bis']:14.6f} "
+              f"{d['k_bis']:3d} {100*d['r_fp']:14.6f} {d['k_fp']:3d} {kt:>11}")
+
+
+def plot_survey(ket_qua: list[dict], P: float, N: int, path: str = "khao_sat_lai_suat.png") -> None:
+    """Ve do thi r theo A va so buoc lap theo A, luu ra file anh.
+
+    Require: ket_qua tu survey_payment; path la ten file anh.
+    Ensure: file anh duoc tao tai path.
+    """
+    A = np.array([d["A"] for d in ket_qua])
+    r_b = 100 * np.array([d["r_bis"] for d in ket_qua])
+    r_f = 100 * np.array([d["r_fp"] for d in ket_qua])
+    k_b = np.array([d["k_bis"] for d in ket_qua])
+    k_f = np.array([d["k_fp"] for d in ket_qua])
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.5))
+
+    ax1.plot(A, r_b, "o-", label="Chia doi")
+    ax1.plot(A, r_f, "x--", label="Day cung")
+    ax1.axvline(P / N, color="gray", ls=":", label=f"A = P/N = {P / N:.3f}")
+    ax1.axhline(0, color="black", lw=0.8)
+    ax1.set_xlabel("A (trieu dong/thang)")
+    ax1.set_ylabel("r (%/thang)")
+    ax1.set_title("Lai suat thang r theo tien tra A")
+    ax1.legend()
+    ax1.grid(alpha=0.3)
+
+    ax2.plot(A, k_b, "o-", label="Chia doi")
+    ax2.plot(A, k_f, "x--", label="Day cung")
+    ax2.set_xlabel("A (trieu dong/thang)")
+    ax2.set_ylabel("So buoc lap k")
+    ax2.set_title(r"So buoc lap voi $\varepsilon = 10^{-8}$")
+    ax2.legend()
+    ax2.grid(alpha=0.3)
+
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+
+
+# ----------------------------------------------------------------------------
+# Chay thu
+# ----------------------------------------------------------------------------
+def main() -> None:
+    """Chay toan bo bai toan ung dung va in ket qua."""
+    P, A, N = P_DEFAULT, A_DEFAULT, N_DEFAULT
+    eps, n_max = EPS_DEFAULT, N_MAX_DEFAULT
+    f = make_f(A, P, N)
+
+    # --- Phan 1: A = 12, so sanh hai phuong phap ---
+    a, b = bracket_interest_rate(A, P, N)
+    print(f"[1] Khoang cach ly nghiem (P1): [{a:.6f}; {b:.6f}]")
+    print(f"    So buoc ly thuyet cua chia doi (P4): {bisection_steps(a, b, eps)}")
+    for ten in ("bisection", "false_position"):
+        r, k, err = find_interest_rate(A, P, N, eps, n_max, ten)
+        print(f"    {ten:15s}: r = {100*r:.8f} %/thang, k = {k}, err = {err:.2e}, "
+              f"|f(r)| = {abs(f(r)):.2e}, |r - dap an de bai| = {abs(r - R_REFERENCE):.2e}")
+
+    # --- Phan 2: khao sat A tu 9 den 15 (mo rong xuong 5 de thay A*N <= P) ---
+    A_values = sorted(set(np.arange(5.0, 15.0 + 1e-9, 0.5).tolist() + [P / N]))
+    ket_qua = survey_payment(A_values, P, N, eps, n_max)
+    print("\n[2] Khao sat theo A:")
+    print_survey_table(ket_qua)
+    plot_survey(ket_qua, P, N)
+    print("    Da luu do thi: khao_sat_lai_suat.png")
+
+    # --- Phan 3: truong hop A*N <= P (R6) ---
+    print("\n[3] Truong hop A*N <= P voi A = 8 (A*N = 480 < P = 500):")
+    try:
+        find_interest_rate(8.0, P, N, eps, n_max)
+    except ValueError as loi:
+        print(f"    Bao loi dung nhu mong doi: {loi}")
+
+
+if __name__ == "__main__":
+    main()

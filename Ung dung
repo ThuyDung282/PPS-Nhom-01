@@ -254,3 +254,54 @@ def test_tham_so_khong_hop_le():
         giai_lai_suat(A, P, N, EPS, 200, "newton")          # phương pháp lạ
     with pytest.raises(ValueError):
         f_lai_suat(0.0, A, P, N)                            # r = 0
+
+"""Kiểm thử hai bài tập ứng dụng bổ sung. Chạy: pytest"""
+import math
+import pytest
+
+from bisection import bisection
+from danh_gia_sai_so import bisection_steps
+from ung_dung_them import bang_so_sanh, f_bai1, f_bai2, nghiem_duong_nho_nhat
+
+# Bài 1 (Ví dụ 3.1)
+def test_bai1_khop_vi_du_trong_sach():
+    """Sách: sau 6 bước x6 = 1,4140625, sai số 0,0078125."""
+    x, k, err = bisection(f_bai1, 1, 2, 0.01, 50)
+    assert x == pytest.approx(1.4140625)
+    assert k == 6
+    assert err == pytest.approx(0.0078125)
+
+def test_bai1_so_buoc_ly_thuyet():
+    """Sách: với eps = 1e-5 cần ít nhất 16 bước, và chạy thực tế cũng đúng 16 bước."""
+    assert bisection_steps(1, 2, 1e-5) == 16
+    assert bisection(f_bai1, 1, 2, 1e-5, 50)[1] == 16
+
+def test_bai1_hai_phuong_phap_gan_can_bac_hai_cua_2():
+    (eps, x_cd, k_cd, k_lt, x_dc, k_dc), = bang_so_sanh(f_bai1, 1, 2, [1e-8], 200)
+    assert x_cd == pytest.approx(math.sqrt(2), abs=1e-7)
+    assert x_dc == pytest.approx(math.sqrt(2), abs=1e-7)
+    assert k_dc < k_cd  # dây cung ít bước hơn chia đôi
+
+# Bài 2 (Bài tập 3.10)
+def test_bai2_khoang_chua_nghiem_duong_nho_nhat():
+    a, b = nghiem_duong_nho_nhat(f_bai2, 0.0, 5.0, 0.5)
+    assert f_bai2(a) * f_bai2(b) < 0
+    # không có nghiệm nào nhỏ hơn: f dương trên cả đoạn [0; a]
+    assert all(f_bai2(a * i / 100) > 0 for i in range(101))
+
+@pytest.mark.parametrize("eps", [1e-2, 1e-5, 1e-8])
+def test_bai2_nghiem(eps):
+    a, b = nghiem_duong_nho_nhat(f_bai2, 0.0, 5.0, 0.5)
+    (_, x_cd, _, _, x_dc, _), = bang_so_sanh(f_bai2, a, b, [eps], 200)
+    assert x_cd == pytest.approx(1.21641359, abs=2 * eps)
+    assert x_dc == pytest.approx(1.21641359, abs=2 * eps)
+    assert abs(f_bai2(x_cd)) < 0.1
+
+# --- Ca biên ---
+def test_bien_khong_co_nghiem_duong():
+    with pytest.raises(ValueError):
+        nghiem_duong_nho_nhat(lambda x: x * x + 1, 0.0, 5.0, 0.5)
+
+def test_bien_khoang_khong_doi_dau():
+    with pytest.raises(ValueError):
+        bisection(f_bai1, 2, 3, 1e-5, 50)  # f(2)*f(3) > 0

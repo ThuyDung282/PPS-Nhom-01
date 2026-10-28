@@ -27,7 +27,33 @@ def bisection_steps(a, b, eps) -> int:
     n = np.ceil(np.log2((b - a) / eps)) - 1
     #dong 3 - Tra ve ket qua
     return max(0, int(n))
+#Bổ sung 
+def bisection_error(a, b, n) -> float:
+    """
+    Đánh giá cận trên sai số tuyệt đối của phương pháp chia đôi tại bước lặp thứ n.
 
+    Thuật toán: Đánh giá giá trị sai số Chia đôi (Bisection Absolute Error)
+    Công thức sai số: |x_n - x_star| <= (b - a) / 2^(n + 1)
+
+    Require (Đầu vào):
+        a (float): Biên trái khoảng cách ly nghiệm (a < b)
+        b (float): Biên phải khoảng cách ly nghiệm
+        n (int): Số bước lặp đã thực hiện (n >= 0)
+
+    Ensure (Đầu ra):
+        float: Giá trị cận trên sai số tuyệt đối tại bước lặp n
+    """
+    # dong 1 - Kiem tra dieu kien dau vao
+    if a >= b:
+        raise ValueError("Khoảng cách ly không hợp lệ: yêu cầu b > a")
+    if n < 0:
+        raise ValueError("Số bước lặp n phải lớn hơn hoặc bằng 0")
+
+    # dong 2 - Tinh sai so tuyet doi theo cong thuc (b - a) / 2^(n + 1)
+    err = (b - a) / (2 ** (n + 1))
+
+    # dong 3 - Tra ve ket qua sai so dang float
+    return float(err)
 
 # PP DÂY CUNG
 def false_position_error(x_k, x_prev, m1, M1) -> float:

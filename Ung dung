@@ -276,7 +276,7 @@ def test_bai1_so_buoc_ly_thuyet():
     assert bisection_steps(1, 2, 1e-5) == 16
     assert bisection(f_bai1, 1, 2, 1e-5, 50)[1] == 16
 
-def test_bai1_hai_phuong_phap_gan_can_bac_hai_cua_2():
+def test_bai1_hai_phuong_phap_gan_can_bac_hai_cua_2(): #so sánh hiệu quả giữa hai phương pháp
     (eps, x_cd, k_cd, k_lt, x_dc, k_dc), = bang_so_sanh(f_bai1, 1, 2, [1e-8], 200)
     assert x_cd == pytest.approx(math.sqrt(2), abs=1e-7)
     assert x_dc == pytest.approx(math.sqrt(2), abs=1e-7)
@@ -290,6 +290,7 @@ def test_bai2_khoang_chua_nghiem_duong_nho_nhat():
     assert all(f_bai2(a * i / 100) > 0 for i in range(101))
 
 @pytest.mark.parametrize("eps", [1e-2, 1e-5, 1e-8])
+#Kiểm tra nghiệm tìm được từ cả hai phuong pháp chia đôi và dây cung
 def test_bai2_nghiem(eps):
     a, b = nghiem_duong_nho_nhat(f_bai2, 0.0, 5.0, 0.5)
     (_, x_cd, _, _, x_dc, _), = bang_so_sanh(f_bai2, a, b, [eps], 200)
@@ -297,7 +298,7 @@ def test_bai2_nghiem(eps):
     assert x_dc == pytest.approx(1.21641359, abs=2 * eps)
     assert abs(f_bai2(x_cd)) < 0.1
 
-# --- Ca biên ---
+# Kiểm tra các TH biên
 def test_bien_khong_co_nghiem_duong():
     with pytest.raises(ValueError):
         nghiem_duong_nho_nhat(lambda x: x * x + 1, 0.0, 5.0, 0.5)

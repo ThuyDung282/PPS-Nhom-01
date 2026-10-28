@@ -64,7 +64,7 @@ def tim_khoang_nghiem(A, P, N, step=0.01):
     Vì sao quét r trong [10^-6; 1]?
       - f giảm theo r; khi r -> 0+ thì f -> A*N - P; khi r lớn thì f -> -P < 0.
       - Nên nếu A*N > P thì f đổi dấu đúng một lần với r > 0.
-      - Bắt đầu từ 1e-6 (không phải 0) để tránh chia cho 0; r = 1 là 100%/tháng, đủ lớn.
+      - Bắt đầu từ 10^-6 (không phải 0) để tránh chia cho 0; r = 1 là 100%/tháng, đủ lớn.
       - Nếu A*N <= P thì f(r) < 0 với mọi r > 0, không có lãi suất dương -> báo lỗi.
 
     Require: A, P > 0; N nguyên dương; step > 0.
@@ -73,7 +73,7 @@ def tim_khoang_nghiem(A, P, N, step=0.01):
     Thuật toán: tách nghiệm bằng quét dấu (P1).
     """
     kiem_tra_tham_so(A, P, N)
-    if A * N <= P + 1e-9:  # tình huống biên: tổng tiền trả không vượt số tiền vay (+1e-9 để bù sai số làm tròn)
+    if A * N <= P + 10^-9:  # tình huống biên: tổng tiền trả không vượt số tiền vay (+1e-9 để bù sai số làm tròn)
         raise ValueError("A*N <= P: tổng tiền trả không vượt số tiền vay, không có lãi suất dương.")
 
     def f(r):
@@ -155,10 +155,10 @@ def ve_do_thi(ket_qua, ten_file="khao_sat_lai_suat.png"):
     ax2.set_title("Số bước lặp với eps = 10^-8")
     ax2.grid(True)
     ax2.legend()
-
-    fig.tight_layout()
-    fig.savefig(ten_file, dpi=150)
-    plt.close(fig)
+   
+    fig.tight_layout()                # tự chỉnh khoảng cách để chữ không đè lên nhau
+    fig.savefig(ten_file)             # lưu ra file ảnh
+    plt.close(fig)                    # đóng hình, giải phóng bộ nhớ
 
 # 4. Chương trình chính
 def main():

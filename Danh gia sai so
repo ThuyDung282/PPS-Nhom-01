@@ -4,27 +4,31 @@ import numpy as np
 import numpy as np
 
 # PP CHIA ĐÔI
-def bisection_steps(a: float, b: float, eps: float) -> int:
-    """
-    Tính số bước lặp lý thuyết tối thiểu của phương pháp Chia đôi.
+def bisection_steps(a, b, eps) -> int:
+        """
+        Tính số bước lặp lý thuyết tối thiểu của phương pháp chia đôi để đạt sai số eps.
 
-    Đầu vào (Require):
-        a (float)   : Biên trái khoảng cách ly nghiệm (a < b)
-        b (float)   : Biên phải khoảng cách ly nghiệm (b > a)
-        eps (float) : Độ chính xác yêu cầu / Sai số cho phép (eps > 0)
+        Thuật toán: Đánh giá số bước lặp Chia đôi (Bisection Step Estimation)
+        Công thức sai số: e_n = (b - a) / 2^(n + 1) <= eps
+        => 2^(n + 1) >= (b - a) / eps => n >= log2((b - a) / eps) - 1
 
-    Đầu ra (Ensure):
-        int         : Số bước lặp tối thiểu n = max(0, ceil(log2((b - a) / eps)) - 1)
-    """
-    if a >= b:
-        raise ValueError("Yêu cầu b > a")     # Kiểm tra khoảng cách ly
-    if eps <= 0:
-        raise ValueError("Yêu cầu eps > 0")   # Kiểm tra sai số dương
+        Require (Đầu vào):
+            a (float): Biên trái khoảng cách ly nghiệm (a < b)
+            b (float): Biên phải khoảng cách ly nghiệm
+            eps (float): Độ chính xác yêu cầu (eps > 0)
 
-    # Tính n và làm tròn lên
-    n = np.ceil(np.log2((b - a) / eps)) - 1
-
-    return max(0, int(n))                    # Trả về số bước lặp (int >= 0)
+        Ensure (Đầu ra):
+            int: Số bước lặp tối thiểu n = max(0, ceil(log2((b - a) / eps)) - 1)
+        """
+        # dong 1 - Kiem tra dieu kien dau vao
+        if a >= b:                                              # Kiểm tra nếu biên trái >= biên phải -> Khoảng cách ly không hợp lệ
+            raise ValueError("Khoảng cách ly không hợp lệ: yêu cầu b > a")  # Báo lỗi nếu khoảng không hợp lệ
+        if eps <= 0:                                            # Kiểm tra sai số eps phải là số dương
+            raise ValueError("Sai số eps phải lớn hơn 0") # Báo lỗi nếu eps <= 0 
+     # dong 2 - Tinh so buoc lap theo cong thuc
+        n = np.ceil(np.log2((b - a) / eps)) - 1     # Tính n theo công thức log2 và làm tròn lên bằng np.ceil, sau đó trừ 1
+    # dong 3 - Tra ve ket qua
+        return max(0, int(n))        # Đảm bảo n không bị âm (max với 0) và ép kiểu về int trước khi trả về
 # PP DÂY CUNG
 def false_position_error(x_k, x_prev, m1, M1) -> float:
     """

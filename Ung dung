@@ -189,6 +189,68 @@ def main():
         except ValueError as loi:
             print(f"    A = {a_loi:.3f} (A*N = {a_loi * N:.1f}): báo lỗi -> {loi}")
 
-
 if __name__ == "__main__":
     main()
+
+"""Kiểm thử phần ứng dụng. Chạy: pytest"""
+import pytest
+
+from ung_dung import f_lai_suat, giai_lai_suat, tim_khoang_nghiem
+
+P, A, N = 500.0, 12.0, 60
+EPS = 10^-8
+
+# TH1: ví dụ trong đề (r ≈ 1,2833 %/tháng) 
+@pytest.mark.parametrize("phuong_phap", ["chia_doi", "day_cung"])
+def test_vi_du_de_bai(phuong_phap):
+    r, k, err = giai_lai_suat(A, P, N, EPS, 200, phuong_phap)
+    assert r == pytest.approx(0.012833, abs=1e-5)   # đề chỉ cho 5 chữ số
+    assert abs(f_lai_suat(r, A, P, N)) < 1e-3       # thay lại vào f thì f(r) ≈ 0
+    assert k >= 1 and err >= 0
+
+
+# TH2: có nghiệm đúng do nhóm chọn: chọn trước r = 1%/tháng, tính A tương ứng 
+@pytest.mark.parametrize("phuong_phap", ["chia_doi", "day_cung"])
+def test_nghiem_dung_tu_chon(phuong_phap):
+    r_dung = 0.01
+    A_chon = P * r_dung / (1 - (1 + r_dung) ** (-N))  # công thức trả góp: f(r_dung) = 0
+    r, _, _ = giai_lai_suat(A_chon, P, N, EPS, 200, phuong_phap)
+    assert r == pytest.approx(r_dung, abs=1e-7)
+
+
+# TH3: ca biên A*N <= P (không có lãi suất dương) -> phải báo lỗi
+def test_bien_AN_nho_hon_hoac_bang_P():
+    with pytest.raises(ValueError):
+        giai_lai_suat(8.0, P, N, EPS, 200, "chia_doi")      # A*N = 480 < 500
+    with pytest.raises(ValueError):
+        giai_lai_suat(P / N, P, N, EPS, 200, "day_cung")    # A*N = P
+
+
+# Các TH bổ sung
+def test_hai_phuong_phap_cho_cung_ket_qua():
+    r_cd, _, _ = giai_lai_suat(A, P, N, EPS, 200, "chia_doi")
+    r_dc, _, _ = giai_lai_suat(A, P, N, EPS, 200, "day_cung")
+    assert abs(r_cd - r_dc) < 1e-7
+
+
+def test_A_tang_thi_r_tang():
+    """Cùng vay P, trả mỗi tháng nhiều hơn thì lãi suất r phải lớn hơn."""
+    cac_r = [giai_lai_suat(a, P, N, EPS, 200, "chia_doi")[0] for a in range(9, 16)]
+    assert all(cac_r[i] < cac_r[i + 1] for i in range(len(cac_r) - 1))
+
+
+def test_khoang_nghiem_doi_dau():
+    a, b = tim_khoang_nghiem(A, P, N)
+    assert a < b
+    assert f_lai_suat(a, A, P, N) * f_lai_suat(b, A, P, N) < 0
+
+
+def test_tham_so_khong_hop_le():
+    with pytest.raises(ValueError):
+        giai_lai_suat(-1.0, P, N, EPS, 200, "chia_doi")     # A âm
+    with pytest.raises(ValueError):
+        giai_lai_suat(A, P, 0, EPS, 200, "chia_doi")        # N = 0
+    with pytest.raises(ValueError):
+        giai_lai_suat(A, P, N, EPS, 200, "newton")          # phương pháp lạ
+    with pytest.raises(ValueError):
+        f_lai_suat(0.0, A, P, N)                            # r = 0

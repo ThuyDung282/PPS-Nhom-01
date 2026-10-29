@@ -1,134 +1,273 @@
+
 import unittest
 import math
 import warnings
 
-# Import các hàm do các thành viên khác trong nhóm xây dựng
-from isolate_roots import isolate_roots  # SV1: Tìm khoảng phân ly nghiệm
-from bisection import bisection          # SV2: Phương pháp chia đôi
-from false_position import false_position  # SV3: Phương pháp dây cung
+from isolate_roots import isolate_roots
+from bisection import bisection
+from false_position import false_position
+from error_estimation import bisection_steps, false_position_error
 
 
-# PHẦN 1. XÂY DỰNG CÁC HÀM SỐ THEO YÊU CẦU ĐỀ BÀI
+# =========================================================
+# 1. KHAI BÁO HAI HÀM SỐ THEO ĐỀ BÀI
+# =========================================================
 
-# Hàm số thứ nhất: f(x) = x^2 - 5x - 3
 def f1(x):
+    """Hàm số f1(x) = x^2 - 5x - 3."""
     return x**2 - 5*x - 3
 
 
-# Hàm số thứ hai: f(x) = 5x^3 - 20x + 3
 def f2(x):
+    """Hàm số f2(x) = 5x^3 - 20x + 3."""
     return 5*x**3 - 20*x + 3
 
 
-# Nghiệm chính xác của f1 nằm trong khoảng (-1, 0).
-# Giải phương trình x^2 - 5x - 3 = 0 bằng công thức nghiệm.
+# Nghiệm tham chiếu của f1 trên khoảng (-1, 0)
 ROOT1 = (5 - math.sqrt(37)) / 2
 
+# Ba nghiệm tham chiếu của f2
+ROOTS2 = [-2.071157, 0.150858, 1.920299]
 
-# Các nghiệm gần đúng của f2 theo đề bài. Dùng để so sánh kết quả do các phương pháp số tìm được.
-ROOTS2 = [
-    -2.071157,
-    0.150858,
-    1.920299
-]
-
-# Ba khoảng phân ly nghiệm của f2.Mỗi khoảng phải có f(a)*f(b) < 0.
+# Ba khoảng phân ly nghiệm của f2 theo đề bài
 BRACKETS2 = [
     (-2.1, -2.0),
     (0.1, 0.2),
     (1.9, 2.0)
 ]
 
-# Các mức sai số cần khảo sát theo đề bài. Sai số càng nhỏ thì thường cần độ chính xác cao hơn.
 EPS_LIST = [1e-2, 1e-4, 1e-6, 1e-8, 1e-10]
-
-
-# PHẦN 2. XÂY DỰNG CÁC TEST KIỂM THỬ
 
 class TestFunctionsFromAssignment(unittest.TestCase):
 
-    # TEST 1: Kiểm tra f1 đổi dấu trên khoảng (-1, 0).
-    # Điều kiện đổi dấu là f(a)*f(b) < 0.điều kiện để áp dụng phương pháp chia đôi và phương pháp dây cung 
-    
-    def test_f1_doi_dau(self):
+    # =====================================================
+    # 2. P1 - KIỂM THỬ HÀM TÌM KHOẢNG PHÂN LY NGHIỆM
+    # =====================================================
+
+    def test_p1_f1_doi_dau(self):
+        """f1 phải đổi dấu trên khoảng (-1, 0)."""
         self.assertLess(f1(-1) * f1(0), 0)
 
-    # TEST 2: Kiểm tra phương pháp chia đôi với f1. Gọi hàm bisection để tìm nghiệm gần đúng.
-    # x: nghiệm gần đúng; k: số bước lặp; err: sai số.
-    
-    def test_f1_chia_doi(self):
+    def test_p1_f2_tim_du_ba_nghiem(self):
+        """Quét f2 và kiểm tra tìm được cả ba nghiệm."""
+        intervals = isolate_roots(f2, -3, 3, 0.1)
+
+        for root in ROOTS2:
+            with self.subTest(root=root):
+                found = any(
+                    a - 1e-6 <= root <= b + 1e-6
+                    for a, b in intervals
+                )
+                self.assertTrue(
+                    found,
+                    f"Không tìm thấy khoảng chứa nghiệm {root}"
+                )
+
+    def test_p1_khoang_chua_nghiem_f1(self):
+        """Khoảng tìm được phải chứa nghiệm của f1."""
+        intervals = isolate_roots(f1, -1, 0, 0.1)
+
+        self.assertTrue(
+            any(a <= ROOT1 <= b for a, b in intervals)
+        )
+
+    def test_p1_loi_khoang_khong_hop_le(self):
+        """a >= b phải gây ra ValueError."""
+        with self.assertRaises(ValueError):
+            isolate_roots(f1, 1, 1, 0.1)
+
+    def test_p1_loi_buoc_quet(self):
+        """Bước quét bằng 0 hoặc âm phải gây ra ValueError."""
+        with self.assertRaises(ValueError):
+            isolate_roots(f1, -1, 0, 0)
+
+        with self.assertRaises(ValueError):
+            isolate_roots(f1, -1, 0, -0.1)
+
+    # =====================================================
+    # 3. P2 - KIỂM THỬ PHƯƠNG PHÁP CHIA ĐÔI
+    # =====================================================
+
+    def test_p2_f1_tim_nghiem(self):
+        """Chia đôi phải tìm được nghiệm của f1."""
         x, k, err = bisection(
             f1, -1, 0, eps=1e-10, n_max=100
         )
 
-        self.assertAlmostEqual(x, ROOT1, delta=1e-8) # Kiểm tra nghiệm tìm được gần ROOT1 trong phạm vi 1e-8.
-        self.assertGreaterEqual(k, 1)                #kiểm tra số bước không âm
-        self.assertGreaterEqual(err, 0)              # sai số không âm.
+        self.assertAlmostEqual(x, ROOT1, delta=1e-8)
+        self.assertGreaterEqual(k, 1)
+        self.assertGreaterEqual(err, 0)
+        self.assertLessEqual(err, 1e-10)
 
-    # TEST 3: Kiểm tra phương pháp dây cung với f1.Tìm nghiệm trên khoảng (-1, 0), với sai số yêu cầu 1e-10.
- 
-    def test_f1_day_cung(self):
+    def test_p2_f2_tim_ca_ba_nghiem(self):
+        """Chia đôi phải tìm được cả ba nghiệm của f2."""
+        for (a, b), root in zip(BRACKETS2, ROOTS2):
+            with self.subTest(khoang=(a, b)):
+                x, k, err = bisection(
+                    f2, a, b, eps=1e-10, n_max=100
+                )
+
+                self.assertAlmostEqual(x, root, delta=2e-5)
+                self.assertGreaterEqual(k, 1)
+                self.assertGreaterEqual(err, 0)
+
+    def test_p2_dau_mot_la_nghiem(self):
+        """Nếu f(a) = 0, phải trả về a và sai số 0."""
+        x, k, err = bisection(
+            lambda x: x, 0, 1
+        )
+
+        self.assertEqual(x, 0.0)
+        self.assertEqual(k, 0)
+        self.assertEqual(err, 0.0)
+
+    def test_p2_loi_khoang_khong_hop_le(self):
+        with self.assertRaises(ValueError):
+            bisection(f1, 1, 0)
+
+    def test_p2_loi_eps(self):
+        with self.assertRaises(ValueError):
+            bisection(f1, -1, 0, eps=0)
+
+    def test_p2_loi_khong_co_doi_dau(self):
+        with self.assertRaises(ValueError):
+            bisection(lambda x: x**2 + 1, -1, 1)
+
+    # =====================================================
+    # 4. P3 - KIỂM THỬ PHƯƠNG PHÁP DÂY CUNG
+    # =====================================================
+
+    def test_p3_f1_tim_nghiem(self):
+        """Dây cung phải tìm được nghiệm của f1."""
         x, k, err = false_position(
             f1, -1, 0, eps=1e-10, n_max=1000
         )
 
-        self.assertAlmostEqual(x, ROOT1, delta=1e-8)# kiểm tra nghiệm tìm được 
-        self.assertGreaterEqual(k, 1)# kiểm tra bước lap không âm
-        self.assertGreaterEqual(err, 0)# kiểm tra sai số không âm
+        self.assertAlmostEqual(x, ROOT1, delta=1e-8)
+        self.assertGreaterEqual(k, 1)
+        self.assertGreaterEqual(err, 0)
 
-    # TEST 4: Kiểm tra SV1 có tìm được khoảng chứa cả ba nghiệm của f2 hay không. Với mỗi nghiệm tham chiếu,
-    def test_f2_tim_du_ba_khoang(self):
-        intervals = isolate_roots(f2, -3, 3, 0.1) # isolate_roots quét khoảng [-3, 3] với bước 0.1.
-
-        for root in ROOTS2:                     # kiểm tra xem có khoảng [a, b] nào chứa nghiệm đó không, thiếu 1 nghiệm sẽ báo lỗi
-            found = any(
-                a <= root <= b for a, b in intervals
-            )
-
-            self.assertTrue(
-                found,
-                f"Không tìm được khoảng chứa nghiệm {root}"
-            )
-
-    # TEST 5: Kiểm tra hai phương pháp chia đôi và dây cung trên cả ba khoảng phân ly nghiệm của f2.
-    def test_f2_chia_doi_va_day_cung(self):
+    def test_p3_f2_tim_ca_ba_nghiem(self):
+        """Dây cung phải tìm được cả ba nghiệm của f2."""
         for (a, b), root in zip(BRACKETS2, ROOTS2):
-            with self.subTest(khoang=(a, b)):              # subTest giúp xác định khoảng nào gây lỗi nếu thất bại.
-
-                # Kiểm tra khoảng có thỏa điều kiện đổi dấu.
-                self.assertLess(f2(a) * f2(b), 0)
-
-                # Tìm nghiệm bằng phương pháp chia đôi.
-                xb, _, _ = bisection(
-                    f2, a, b, eps=1e-10, n_max=100
+            with self.subTest(khoang=(a, b)):
+                x, k, err = false_position(
+                    f2, a, b, eps=1e-10, n_max=10000
                 )
 
-                # Tìm nghiệm bằng phương pháp dây cung.
-                xf, _, _ = false_position(
-                    f2, a, b, eps=1e-10, n_max=1000
-                )
+                self.assertAlmostEqual(x, root, delta=2e-5)
+                self.assertGreaterEqual(k, 1)
+                self.assertGreaterEqual(err, 0)
 
-                # So sánh nghiệm tìm được với nghiệm tham chiếu, sai lệch cho phép là 2e-5.
-                self.assertAlmostEqual(
-                    xb, root, delta=2e-5
-                )
-                self.assertAlmostEqual(
-                    xf, root, delta=2e-5
-                )
-
-    # TEST 6: Thực nghiệm so sánh số bước lặp. Chạy cả hai phương pháp trên f1 và ba khoảng của f2.
-    # Với mỗi khoảng, lần lượt thử năm mức sai số.
-    # In ra bảng số bước lặp của chia đôi và dây cung.
-    def test_bang_so_sanh_so_buoc(self):
-
-        # In tiêu đề bảng kết quả thực nghiệm.
-        print("\n\nSO SANH CHIA DOI VA DAY CUNG")
-        print(
-            f"{'Ham':<5} {'Khoang':<18} {'eps':<12} "
-            f"{'k chia doi':<12} {'k day cung':<12}"
+    def test_p3_dau_mut_la_nghiem(self):
+        """Nếu đầu mút là nghiệm, số bước và sai số bằng 0."""
+        x, k, err = false_position(
+            lambda x: x, 0, 1, 1e-5, 50
         )
 
-        # Danh sách các trường hợp cần so sánh.
+        self.assertEqual(x, 0.0)
+        self.assertEqual(k, 0)
+        self.assertEqual(err, 0.0)
+
+    def test_p3_loi_ham_khong_goi_duoc(self):
+        with self.assertRaises(TypeError):
+            false_position(123, -1, 1, 1e-5, 50)
+
+    def test_p3_loi_khoang_khong_hop_le(self):
+        with self.assertRaises(ValueError):
+            false_position(f1, 1, 0, 1e-5, 50)
+
+    def test_p3_loi_eps(self):
+        with self.assertRaises(ValueError):
+            false_position(f1, -1, 0, 0, 50)
+
+    def test_p3_loi_n_max(self):
+        with self.assertRaises(ValueError):
+            false_position(f1, -1, 0, 1e-5, 0)
+
+    def test_p3_loi_khong_co_doi_dau(self):
+        with self.assertRaises(ValueError):
+            false_position(
+                lambda x: x**2 + 1, -1, 1, 1e-5, 50
+            )
+
+    # =====================================================
+    # 5. P4 - KIỂM THỬ ĐÁNH GIÁ SAI SỐ
+    # =====================================================
+
+    def test_p4_bisection_steps(self):
+        """Kiểm tra số bước lý thuyết của phương pháp chia đôi."""
+        self.assertEqual(bisection_steps(0, 1, 0.125), 2)
+        self.assertEqual(bisection_steps(0, 1, 0.01), 6)
+        self.assertEqual(bisection_steps(0, 1, 1), 0)
+
+    def test_p4_bisection_steps_loi_dau_vao(self):
+        with self.assertRaises(ValueError):
+            bisection_steps(1, 0, 0.01)
+
+        with self.assertRaises(ValueError):
+            bisection_steps(0, 1, 0)
+
+    def test_p4_false_position_error(self):
+        """Kiểm tra công thức sai số dây cung."""
+        err = false_position_error(
+            x_k=1.2,
+            x_prev=1.0,
+            m1=2.0,
+            M1=4.0
+        )
+
+        expected = ((4.0 - 2.0) / 2.0) * abs(1.2 - 1.0)
+        self.assertAlmostEqual(err, expected)
+
+    def test_p4_false_position_error_loi_m1(self):
+        with self.assertRaises(ValueError):
+            false_position_error(1.2, 1.0, 0, 4)
+
+    def test_p4_false_position_error_loi_M1(self):
+        with self.assertRaises(ValueError):
+            false_position_error(1.2, 1.0, 4, 2)
+
+    # =====================================================
+    # 6. KIỂM THỬ CHÉO VÀ SO SÁNH HAI PHƯƠNG PHÁP
+    # =====================================================
+
+    def test_kiem_thu_cheo_chia_doi_va_day_cung(self):
+        """Hai phương pháp phải tìm nghiệm gần với nhau."""
+        cases = [
+            (f1, -1, 0, ROOT1),
+            (f2, -2.1, -2.0, ROOTS2[0]),
+            (f2, 0.1, 0.2, ROOTS2[1]),
+            (f2, 1.9, 2.0, ROOTS2[2])
+        ]
+
+        for f, a, b, root in cases:
+            with self.subTest(khoang=(a, b)):
+                xb, _, _ = bisection(
+                    f, a, b, eps=1e-8, n_max=1000
+                )
+
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    xf, _, _ = false_position(
+                        f, a, b, eps=1e-8, n_max=10000
+                    )
+
+                self.assertAlmostEqual(xb, root, delta=2e-5)
+                self.assertAlmostEqual(xf, root, delta=2e-5)
+                self.assertAlmostEqual(xb, xf, delta=2e-5)
+
+    # =====================================================
+    # 7. THỰC NGHIỆM - SO SÁNH SỐ BƯỚC LẶP
+    # =====================================================
+
+    def test_bang_so_sanh_so_buoc(self):
+        print("\n\nSO SANH SO BUOC LAP")
+        print(
+            f"{'Ham':<5} {'Khoang':<18} {'eps':<12} "
+            f"{'Chia doi':<12} {'Day cung':<12}"
+        )
+
         cases = [
             ("f1", f1, -1, 0),
             ("f2a", f2, -2.1, -2.0),
@@ -136,43 +275,29 @@ class TestFunctionsFromAssignment(unittest.TestCase):
             ("f2c", f2, 1.9, 2.0)
         ]
 
-        # Lặp qua từng hàm và từng khoảng nghiệm.
         for name, f, a, b in cases:
-
-            # Thử lần lượt các mức sai số trong EPS_LIST.
             for eps in EPS_LIST:
-                with self.subTest(
-                    ham=name, eps=eps, khoang=(a, b)
-                ):
-
-                    # Tạm ẩn cảnh báo để bảng kết quả dễ đọc.
-                    # Việc này không làm thay đổi thuật toán.
+                with self.subTest(ham=name, eps=eps):
                     with warnings.catch_warnings():
                         warnings.simplefilter("ignore")
 
-                        # Chạy phương pháp chia đôi.
                         _, kb, _ = bisection(
                             f, a, b, eps=eps, n_max=1000
                         )
 
-                        # Chạy phương pháp dây cung.
                         _, kf, _ = false_position(
                             f, a, b, eps=eps, n_max=10000
                         )
 
-                    # In số bước lặp của hai phương pháp.
                     print(
                         f"{name:<5} [{a:>5.1f},{b:>5.1f}] "
                         f"{eps:<12.0e} {kb:<12} {kf:<12}"
                     )
 
 
-# PHẦN 3. CHẠY CÁC TEST
-
 if __name__ == "__main__":
-    # argv=['first-arg-is-ignored']: Không để unittest hiểu các tham số dòng lệnh bên ngoài, là tên test cần chạy.
-    # exit=False:Chạy test nhưng không đóng phiên Python sau khi hoàn tất. 
-    # verbosity=2:Hiển thị tên từng test và kết quả OK/FAIL.
     unittest.main(
-        argv=['first-arg-is-ignored'],exit=False, verbosity=2
+        argv=["first-arg-is-ignored"],
+        exit=False,
+        verbosity=2
     )

@@ -1,9 +1,8 @@
-Bài toán ứng dụng: lãi suất vay trả góp.
+"""Bài ứng dụng bổ sung : một bài giảng và một bài tập trong giáo trình.
 
-Một người vay P triệu đồng, trả đều A triệu đồng mỗi tháng trong N tháng.
-Lãi suất tháng r là nghiệm của phương trình
-
-    f(r) = A * (1 - (1 + r)^(-N)) / r - P = 0.
+Bài 1 (bài giảng, Ví dụ 3.1): tính căn bậc hai của 2, tức là giải x^2 - 2 = 0 trên (1; 2).
+Bài 2 (bài tập 3.10): tìm nghiệm dương nhỏ nhất của x^3 - 3,23x^2 - 5,64x + 9,84 = 0.
+Bài 3 (bài ngoài): lãi suất vay trả góp.
 
 GỌI các hàm của nhóm :
     P1 isolate_roots  : tách khoảng chứa nghiệm
@@ -12,14 +11,106 @@ GỌI các hàm của nhóm :
     P4 bisection_steps: số bước chia đôi theo lý thuyết
 
 Chạy:  python ung_dung.py
+"""
+import math
 
-import matplotlib.pyplot as plt
-import numpy as np
-
+# Tên module theo file Test. 
 from bisection import bisection                 # P2
 from danh_gia_sai_so import bisection_steps     # P4
 from false_position import false_position       # P3
 from isolate_roots import isolate_roots         # P1
+
+DANH_SACH_EPS = [1e-2, 1e-5, 1e-8]  # các mức sai số để so sánh
+N_MAX = 200                         # số bước lặp tối đa
+
+# Hàm của từng bài
+def f_bai1(x):
+    """Bài 1 (Ví dụ 3.1): f(x) = x^2 - 2.
+
+    Require: x là số thực.
+    Ensure: trả về f(x). Nghiệm dương của f chính là căn bậc hai của 2.
+    Thuật toán: không phải thuật toán bài giảng, đây là hàm mục tiêu của bài toán.
+    """
+    return x * x - 2
+
+def f_bai2(x):
+    """Bài 2 (Bài tập 3.10): f(x) = x^3 - 3,23x^2 - 5,64x + 9,84.
+
+    Require: x là số thực.
+    Ensure: trả về f(x).
+    Thuật toán: không phải thuật toán bài giảng, đây là hàm mục tiêu của bài toán.
+    """
+    return x ** 3 - 3.23 * x ** 2 - 5.64 * x + 9.84
+
+# Các hàm dùng chung
+def nghiem_duong_nho_nhat(f, a, b, step):
+    """Tìm khoảng chứa nghiệm dương nhỏ nhất của f trên [a; b] bằng isolate_roots (P1).
+
+    P1 quét từ trái sang phải nên khoảng đầu tiên chứa nghiệm nhỏ nhất.
+    Bỏ qua khoảng suy biến (x; x), tức là nghiệm trùng đúng một điểm quét.
+
+    Require: 0 <= a < b; step > 0.
+    Ensure: trả về (a1, b1) với f(a1)*f(b1) < 0, là khoảng chứa nghiệm dương nhỏ nhất.
+    Raises: ValueError nếu không có nghiệm dương trong [a; b].
+    Thuật toán: tách nghiệm bằng quét dấu (P1).
+    """
+    cac_khoang = [kh for kh in isolate_roots(f, a, b, step) if kh[0] < kh[1]]
+    if len(cac_khoang) == 0:  # tình huống biên: không có nghiệm
+        raise ValueError("Không tìm thấy nghiệm dương trong khoảng đã quét.")
+    return cac_khoang[0]
+
+def bang_so_sanh(f, a, b, danh_sach_eps, n_max):
+    """Giải f(x) = 0 trên [a; b] bằng cả hai phương pháp với từng mức sai số.
+
+    Require: f(a)*f(b) < 0; danh_sach_eps gồm các số dương; n_max >= 1.
+    Ensure: trả về danh sách các bộ
+        (eps, x_chia_doi, k_chia_doi, k_ly_thuyet, x_day_cung, k_day_cung).
+    Thuật toán: chia đôi (P2), dây cung (P3), số bước lý thuyết (P4).
+    """
+    bang = []
+    for eps in danh_sach_eps:
+        x_cd, k_cd, _ = bisection(f, a, b, eps, n_max)
+        x_dc, k_dc, _ = false_position(f, a, b, eps, n_max)
+        bang.append((eps, x_cd, k_cd, bisection_steps(a, b, eps), x_dc, k_dc))
+    return bang
+
+def in_bang(bang):
+    """In bảng so sánh. Require: bang từ bang_so_sanh. Ensure: in ra màn hình."""
+    print(f"{'eps':>8} {'x chia đôi':>13} {'k':>3} {'k lý thuyết':>12} {'x dây cung':>13} {'k':>3}")
+    for eps, x_cd, k_cd, k_lt, x_dc, k_dc in bang:
+        print(f"{eps:8.0e} {x_cd:13.8f} {k_cd:3d} {k_lt:12d} {x_dc:13.8f} {k_dc:3d}")
+
+# Chương trình chính
+def main():
+    """Chạy hai bài ứng dụng bổ sung và in kết quả."""
+    # --- Bài 1: Ví dụ 3.1, tính căn bậc hai của 2 ---
+    a, b = 1.0, 2.0  # khoảng phân ly cho sẵn trong sách: f(1)*f(2) = (-1)*2 < 0
+    print("Bài 1 (Ví dụ 3.1): x^2 - 2 = 0 trên (1; 2), nghiệm là căn bậc hai của 2")
+    x, k, err = bisection(f_bai1, a, b, 0.01, N_MAX)
+    print(f"  Chia đôi, eps = 0,01: x = {x}, k = {k}, sai số = {err}"
+          "  (sách: x6 = 1,4140625, sai số 0,0078125)")
+    print(f"  Số bước tối thiểu với eps = 1e-5 (P4): {bisection_steps(a, b, 1e-5)}  (sách: 16)")
+    in_bang(bang_so_sanh(f_bai1, a, b, DANH_SACH_EPS, N_MAX))
+    print(f"  Đối chiếu: căn bậc hai của 2 = {math.sqrt(2):.8f}")
+
+    # --- Bài 2: Bài tập 3.10, nghiệm dương nhỏ nhất của phương trình bậc ba ---
+    print("\nBài 2 (Bài tập 3.10): x^3 - 3,23x^2 - 5,64x + 9,84 = 0, nghiệm dương nhỏ nhất")
+    a, b = nghiem_duong_nho_nhat(f_bai2, 0.0, 5.0, 0.5)
+    print(f"  Khoảng chứa nghiệm dương nhỏ nhất (P1): [{a}; {b}]")
+    in_bang(bang_so_sanh(f_bai2, a, b, DANH_SACH_EPS, N_MAX))
+    x, _, _ = bisection(f_bai2, a, b, 1e-8, N_MAX)
+    print(f"  Thay lại: f({x:.8f}) = {f_bai2(x):.2e}")
+
+
+if __name__ == "__main__":
+    main()
+
+Bài 3: lãi suất vay trả góp.
+
+Một người vay P triệu đồng, trả đều A triệu đồng mỗi tháng trong N tháng.
+Lãi suất tháng r là nghiệm của phương trình
+
+    f(r) = A * (1 - (1 + r)^(-N)) / r - P = 0.
 
 # Số liệu của đề bài
 P = 500.0      # số tiền vay (triệu đồng)
@@ -191,118 +282,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-"""Kiểm thử phần ứng dụng. Chạy: pytest"""
-import pytest
-
-from ung_dung import f_lai_suat, giai_lai_suat, tim_khoang_nghiem
-
-P, A, N = 500.0, 12.0, 60
-EPS = 10^-8
-
-# TH1: ví dụ trong đề (r ≈ 1,2833 %/tháng) 
-@pytest.mark.parametrize("phuong_phap", ["chia_doi", "day_cung"])
-def test_vi_du_de_bai(phuong_phap):
-    r, k, err = giai_lai_suat(A, P, N, EPS, 200, phuong_phap)
-    assert r == pytest.approx(0.012833, abs=1e-5)   # đề chỉ cho 5 chữ số
-    assert abs(f_lai_suat(r, A, P, N)) < 1e-3       # thay lại vào f thì f(r) ≈ 0
-    assert k >= 1 and err >= 0
-
-
-# TH2: có nghiệm đúng do nhóm chọn: chọn trước r = 1%/tháng, tính A tương ứng 
-@pytest.mark.parametrize("phuong_phap", ["chia_doi", "day_cung"])
-def test_nghiem_dung_tu_chon(phuong_phap):
-    r_dung = 0.01
-    A_chon = P * r_dung / (1 - (1 + r_dung) ** (-N))  # công thức trả góp: f(r_dung) = 0
-    r, _, _ = giai_lai_suat(A_chon, P, N, EPS, 200, phuong_phap)
-    assert r == pytest.approx(r_dung, abs=1e-7)
-
-
-# TH3: ca biên A*N <= P (không có lãi suất dương) -> phải báo lỗi
-def test_bien_AN_nho_hon_hoac_bang_P():
-    with pytest.raises(ValueError):
-        giai_lai_suat(8.0, P, N, EPS, 200, "chia_doi")      # A*N = 480 < 500
-    with pytest.raises(ValueError):
-        giai_lai_suat(P / N, P, N, EPS, 200, "day_cung")    # A*N = P
-
-
-# Các TH bổ sung
-def test_hai_phuong_phap_cho_cung_ket_qua():
-    r_cd, _, _ = giai_lai_suat(A, P, N, EPS, 200, "chia_doi")
-    r_dc, _, _ = giai_lai_suat(A, P, N, EPS, 200, "day_cung")
-    assert abs(r_cd - r_dc) < 1e-7
-
-
-def test_A_tang_thi_r_tang():
-    """Cùng vay P, trả mỗi tháng nhiều hơn thì lãi suất r phải lớn hơn."""
-    cac_r = [giai_lai_suat(a, P, N, EPS, 200, "chia_doi")[0] for a in range(9, 16)]
-    assert all(cac_r[i] < cac_r[i + 1] for i in range(len(cac_r) - 1))
-
-
-def test_khoang_nghiem_doi_dau():
-    a, b = tim_khoang_nghiem(A, P, N)
-    assert a < b
-    assert f_lai_suat(a, A, P, N) * f_lai_suat(b, A, P, N) < 0
-
-
-def test_tham_so_khong_hop_le():
-    with pytest.raises(ValueError):
-        giai_lai_suat(-1.0, P, N, EPS, 200, "chia_doi")     # A âm
-    with pytest.raises(ValueError):
-        giai_lai_suat(A, P, 0, EPS, 200, "chia_doi")        # N = 0
-    with pytest.raises(ValueError):
-        giai_lai_suat(A, P, N, EPS, 200, "newton")          # phương pháp lạ
-    with pytest.raises(ValueError):
-        f_lai_suat(0.0, A, P, N)                            # r = 0
-
-"""Kiểm thử hai bài tập ứng dụng bổ sung. Chạy: pytest"""
-import math
-import pytest
-
-from bisection import bisection
-from danh_gia_sai_so import bisection_steps
-from ung_dung_them import bang_so_sanh, f_bai1, f_bai2, nghiem_duong_nho_nhat
-
-# Bài 1 (Ví dụ 3.1)
-def test_bai1_khop_vi_du_trong_sach():
-    """Sách: sau 6 bước x6 = 1,4140625, sai số 0,0078125."""
-    x, k, err = bisection(f_bai1, 1, 2, 0.01, 50)
-    assert x == pytest.approx(1.4140625)
-    assert k == 6
-    assert err == pytest.approx(0.0078125)
-
-def test_bai1_so_buoc_ly_thuyet():
-    """Sách: với eps = 1e-5 cần ít nhất 16 bước, và chạy thực tế cũng đúng 16 bước."""
-    assert bisection_steps(1, 2, 1e-5) == 16
-    assert bisection(f_bai1, 1, 2, 1e-5, 50)[1] == 16
-
-def test_bai1_hai_phuong_phap_gan_can_bac_hai_cua_2(): #so sánh hiệu quả giữa hai phương pháp
-    (eps, x_cd, k_cd, k_lt, x_dc, k_dc), = bang_so_sanh(f_bai1, 1, 2, [1e-8], 200)
-    assert x_cd == pytest.approx(math.sqrt(2), abs=1e-7)
-    assert x_dc == pytest.approx(math.sqrt(2), abs=1e-7)
-    assert k_dc < k_cd  # dây cung ít bước hơn chia đôi
-
-# Bài 2 (Bài tập 3.10)
-def test_bai2_khoang_chua_nghiem_duong_nho_nhat():
-    a, b = nghiem_duong_nho_nhat(f_bai2, 0.0, 5.0, 0.5)
-    assert f_bai2(a) * f_bai2(b) < 0
-    # không có nghiệm nào nhỏ hơn: f dương trên cả đoạn [0; a]
-    assert all(f_bai2(a * i / 100) > 0 for i in range(101))
-
-@pytest.mark.parametrize("eps", [1e-2, 1e-5, 1e-8])
-#Kiểm tra nghiệm tìm được từ cả hai phuong pháp chia đôi và dây cung
-def test_bai2_nghiem(eps):
-    a, b = nghiem_duong_nho_nhat(f_bai2, 0.0, 5.0, 0.5)
-    (_, x_cd, _, _, x_dc, _), = bang_so_sanh(f_bai2, a, b, [eps], 200)
-    assert x_cd == pytest.approx(1.21641359, abs=2 * eps)
-    assert x_dc == pytest.approx(1.21641359, abs=2 * eps)
-    assert abs(f_bai2(x_cd)) < 0.1
-
-# Kiểm tra các TH biên
-def test_bien_khong_co_nghiem_duong():
-    with pytest.raises(ValueError):
-        nghiem_duong_nho_nhat(lambda x: x * x + 1, 0.0, 5.0, 0.5)
-
-def test_bien_khoang_khong_doi_dau():
-    with pytest.raises(ValueError):
-        bisection(f_bai1, 2, 3, 1e-5, 50)  # f(2)*f(3) > 0

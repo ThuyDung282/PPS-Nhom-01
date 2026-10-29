@@ -49,7 +49,7 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
     if fa * fb > 0:
         raise ValueError( "Khoảng [a, b] không thỏa mãn f(a)*f(b) < 0." )
 
-   xn = 0.0
+    xn = 0.0
     err = 0.0
 
     # dong 1: for i = 1 -> n_max do

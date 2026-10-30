@@ -11,9 +11,9 @@ from false_position import false_position  #  Phương pháp dây cung
 
 # PHẦN 1. XÂY DỰNG CÁC HÀM SỐ THEO YÊU CẦU ĐỀ BÀI
 
-# Hàm số thứ nhất: f(x) = x^2 - 5x - 3
+# Hàm số thứ nhất: f(x) = 2^x - 5x - 3
 def f1(x):
-    return x**2 - 5*x - 3
+    return 2**x - 5*x - 3
 
 
 # Hàm số thứ hai: f(x) = 5x^3 - 20x + 3
@@ -21,7 +21,7 @@ def f2(x):
     return 5*x**3 - 20*x + 3
 
 
-# Nghiệm chính xác của f1 nằm trong khoảng (-1, 0). Giải phương trình x^2 - 5x - 3 = 0 bằng công thức nghiệm.
+# Nghiệm chính xác của f1 nằm trong khoảng (-1, 0). Giải phương trình 2^x - 5x - 3 = 0 bằng công thức nghiệm.
 ROOT1 = (5 - math.sqrt(37)) / 2
 
 

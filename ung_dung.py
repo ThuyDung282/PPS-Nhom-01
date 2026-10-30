@@ -15,7 +15,7 @@ Chạy:  python ung_dung_bai1.py
 """
 import math
 
-# Tên module theo file Test của nhóm.
+# Tên module theo file Test của nhóm. 
 from bisection import bisection                 # P2
 from error_estimation import bisection_steps     # P4 (file error_estimation.py)
 from false_position import false_position       # P3
@@ -71,9 +71,9 @@ def main():
     in_bang(bang_so_sanh(f_bai1, A, B, DANH_SACH_EPS, N_MAX))
     print(f"  Đối chiếu: căn bậc hai của 2 = {math.sqrt(2):.8f}")
 
-
 if __name__ == "__main__":
     main()
+
 
 """Bài ứng dụng 2 - BÀI TẬP: nghiệm dương nhỏ nhất của phương trình bậc ba.
 
@@ -89,7 +89,7 @@ P4 bisection_steps. Không dùng numpy.linalg, scipy... (R3).
 
 Chạy:  python ung_dung_bai2.py
 """
-# Tên module theo file Test của nhóm. Nếu tên file trên repo khác thì chỉ cần sửa 4 dòng này.
+# Tên module theo file Test của nhóm.
 from bisection import bisection                 # P2
 from error_estimation import bisection_steps     # P4 (file error_estimation.py)
 from false_position import false_position       # P3
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     Khảo sát r khi A thay đổi từ 9 đến 15 triệu đồng; nhận xét điều gì xảy ra
     khi A * N <= P.
 
-File này chỉ GỌI các hàm của nhóm (không cài lại thuật toán):
+File này chỉ GỌI các hàm của nhóm (không tự cài lại thuật toán):
     P1 isolate_roots  : tách khoảng chứa nghiệm
     P2 bisection      : phương pháp chia đôi
     P3 false_position : phương pháp dây cung
@@ -221,7 +221,7 @@ def kiem_tra_tham_so(A, P, N):
     if int(N) != N or N < 1:
         raise ValueError("N phải là số nguyên dương.")
 
-#2 Tìm khoảng chứa nghiệm (dùng P1) và giải (dùng P2, P3)
+# 2. Tìm khoảng chứa nghiệm (dùng P1) và giải (dùng P2, P3)
 def tim_khoang_nghiem(A, P, N, step=0.01):
     """Tìm khoảng [a; b] chứa nghiệm r > 0 của f(r) = 0 bằng isolate_roots (P1).
 
@@ -282,7 +282,6 @@ def khao_sat(danh_sach_A, P, N, eps, n_max):
         r_dc, k_dc, _ = giai_lai_suat(a_i, P, N, eps, n_max, "day_cung")
         ket_qua.append((float(a_i), r_cd, k_cd, r_dc, k_dc))
     return ket_qua
-
 
 def in_bang(ket_qua):
     """In bảng kết quả khảo sát. Require: ket_qua từ khao_sat. Ensure: in ra màn hình."""

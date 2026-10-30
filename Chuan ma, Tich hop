@@ -1,1 +1,236 @@
+import math
+import warnings
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# 1. TÌM KHOẢNG PHÂN LY NGHIỆM
+def isolate_roots(f, a, b, step) -> list[tuple[float, float]]:
+    """
+    Thuật toán tìm các khoảng cách ly (phân ly) nghiệm bằng phương pháp quét dấu (Incremental Search).
+    Require (Đầu vào):
+        f: Hàm số f(x) liên tục cần tìm khoảng cách ly nghiệm (Callable[[float], float]).
+        a: Biên trái của đoạn xét [a, b] (float).
+        b: Biên phải của đoạn xét [a, b] (float), với a < b.
+        step: Bước quét h > 0 (float).
+    Ensure (Đầu ra): Danh sách các tuple (x_i, x_{i+1}) chứa các khoảng cách ly nghiệm thoả mãn f(x_i) * f(x_{i+1}) <= 0.
+    Xử lý tình huống biên: Báo lỗi ValueError nếu a >= b hoặc step <= 0.
+    """
+
+    # Kiểm tra điều kiện biên của tham số đầu vào
+    if a >= b:
+        raise ValueError("Lỗi biên: Biên trái 'a' phải nhỏ hơn biên phải 'b'.")
+    if step <= 0:
+        raise ValueError("Lỗi biên: Bước quét 'step' phải là số thực dương (> 0).")
+
+    intervals = [] # Khởi tạo danh sách chứa các khoảng cách ly nghiệm
+    x_curr = float(a) # Khởi tạo điểm quét ban đầu tại biên trái a
+
+    while x_curr < b: # Vòng lặp quét từ a đến b với bước step
+        x_next = min(x_curr + step, float(b)) # Tính điểm tiếp theo, đảm bảo không vượt quá biên phải b
+        y_curr = f(x_curr) # Tính giá trị hàm tại điểm hiện tại
+        y_next = f(x_next) # Tính giá trị hàm tại điểm tiếp theo
+        
+        if y_curr * y_next < 0: # Kiểm tra điều kiện đổi dấu
+            intervals.append((x_curr, x_next)) # Nếu f(x) đổi dấu, ghi nhận khoảng (x_curr, x_next)
+        elif y_curr == 0:
+            intervals.append((x_curr, x_curr)) # Nếu x_curr là nghiệm đúng, ghi nhận khoảng (x_curr, x_curr)
+        
+        x_curr = x_next # Cập nhật điểm quét hiện tại sang điểm tiếp theo
+
+    if f(b) == 0: # Kiểm tra riêng điểm cuối cùng b để tránh bỏ sót nghiệm ở biên phải
+        val_b = float(b)
+        if not intervals or intervals[-1] != (val_b, val_b):
+            intervals.append((val_b, val_b))
+
+    return intervals # Trả về danh sách các khoảng cách ly nghiệm
+
+# 2. PHƯƠNG PHÁP CHIA ĐÔI & ĐÁNH GIÁ SAI SỐ
+# Đánh giá sai số
+def bisection_steps(a, b, eps) -> int:
+    """
+    Tính số bước lặp lý thuyết tối thiểu của phương pháp chia đôi để đạt sai số eps:
+    Thuật toán: Đánh giá số bước lặp Chia đôi (Bisection Step Estimation)
+    Công thức sai số: e_n = (b - a) / 2^(n + 1) <= eps
+    => 2^(n + 1) >= (b - a) / eps => n >= log2((b - a) / eps) - 1
+    Require (Đầu vào):
+        a (float): Biên trái khoảng cách ly nghiệm (a < b)
+        b (float): Biên phải khoảng cách ly nghiệm
+        eps (float): Độ chính xác yêu cầu (eps > 0)
+    Ensure (Đầu ra):
+        int: Số bước lặp tối thiểu n = max(0, ceil(log2((b - a) / eps)) - 1)
+    """
+
+    # Kiểm tra điều kiện đầu vào
+    if a >= b: 
+        raise ValueError("Khoảng cách ly không hợp lệ: yêu cầu b > a")
+    if eps <= 0: 
+        raise ValueError("Sai số eps phải lớn hơn 0")
+
+    n = np.ceil(np.log2((b - a) / eps)) - 1  # Tính số bước lặp tối thiểu n theo công thức và làm tròn lên bằng np.ceil
+    
+    return max(0, int(n)) # Trả kết quả. Đảm bảo n không âm, nếu n < 0 thì trả về 0
+
+# Phương pháp chia đôi
+def bisection(f, a, b, eps=1e-5, n_max=50) -> tuple[float, int, float]:
+    """
+    Giải phương trình f(x) = 0 bằng phương pháp chia đôi (theo Algorithm 4 trong bài giảng)
+    Require (Đầu vào):
+        f     : hàm số liên tục, nhận một số thực, trả về một số thực
+        a, b  : hai đầu khoảng phân ly nghiệm, a < b và f(a)f(b) < 0
+        eps   : sai số cho trước, eps > 0
+        n_max : số bước lặp tối đa cho trước, n_max >= 0
+    Ensure (Đầu ra):
+        Trả về bộ (x, k, err):
+        x   : nghiệm gần đúng ở bước lặp cuối cùng
+        k   : số bước lặp đã thực hiện (biến i trong thuật toán) 
+        err : sai số tại bước lặp cuối, tính bằng (b - a)/2 của khoảng hiện tại
+    Điều kiện dừng: err <= eps, hoặc k đạt n_max + 1, hoặc f(a)f(x) = 0
+    Lưu ý: Nếu a >= b, eps <= 0, n_max < 0, hoặc f(a)f(b) > 0 thì (a; b) không phải khoảng phân ly nghiệm
+           Nếu hết n_max bước mà chưa đạt sai số eps thì cảnh báo người dùng
+    Algorithm: Phương pháp chia đôi (Algorithm 4 trong giáo trình).
+    """
+    # Kiểm tra điều kiện đầu vào
+    if not a < b:
+        raise ValueError("Cần a < b.")
+    if eps <= 0:
+        raise ValueError("Sai số eps phải dương.")
+    if n_max < 0:
+        raise ValueError("n_max phải không âm.")
+
+    fa = f(a)
+    fb = f(b)
+    
+    if fa == 0: return float(a), 0, 0.0 # Nếu f(a) = 0 thì a là nghiệm chính xác, trả về a, 0 bước lặp, sai số 0
+    if fb == 0: return float(b), 0, 0.0 # Nếu f(b) = 0 thì b là nghiệm chính xác, trả về b, 0 bước lặp, sai số 0
+    if fa * fb > 0:
+        raise ValueError("f(a)f(b) > 0: (a; b) không phải khoảng phân ly nghiệm.")
+    
+    i = 0 # Biến đếm số bước lặp
+    err = (b - a) / 2 # dòng 1 - Thuật toán 4 
+    x = (a + b) / 2 
+    
+    while err > eps and i < n_max + 1: # dòng 2 - Thuật toán 4
+        x = (a + b) / 2 # dòng 3 - Thuật toán 4
+        fx = f(x) # dòng 4 - Thuật toán 4
+        
+        if fa * fx == 0: # dòng 5 - Thuật toán 4
+            return x, i + 1, 0.0 # dòng 6 - Thuật toán 4
+        elif fa * fx > 0: # dòng 7 - Thuật toán 4
+            a = x # dòng 8 - Thuật toán 4
+            fa = fx 
+            err = (b - a) / 2 # dòng 9 - Thuật toán 4
+        else: # dòng 10 - Thuật toán 4
+            b = x # dòng 11 - Thuật toán 4
+            err = (b - a) / 2 # dòng 12 - Thuật toán 4
+            
+        i = i + 1 # dòng 13,14 - Thuật toán 4: end if và gán i <- i + 1
+    # dòng 15 - Thuật toán 4: end while (kết thúc vòng lặp)
+    if err > eps: # Cảnh báo khi hết n_max mà chưa đạt eps
+        warnings.warn(f"Hết n_max={n_max} bước nhưng chưa đạt sai số eps={eps} (err={err}).", UserWarning)
+
+    x = (a + b) / 2 # trung điểm của khoảng sau khi thu hẹp
+    err = (b - a) / 2 # sai số tại bước lặp cuối cùng
+    return float(x), i, float(err) # dòng 16 - Thuật toán 4: Trả về nghiệm gần đúng, số bước lặp và sai số
+
+# 3. PHƯƠNG PHÁP DÂY CUNG & ĐÁNH GIÁ SAI SỐ
+# Đánh giá sai số
+def false_position_error(x_k, x_prev, m1, M1) -> float:
+    """
+    Đánh giá cận trên sai số của phương pháp dây cung qua 2 bước lặp liên tiếp.
+    Thuật toán: Đánh giá sai số Dây cung (False Position Error)
+    Công thức sai số: |x_k - x_star| <= ((M1 - m1) / m1) * |x_k - x_prev|
+    Require(Đầu vào):
+        x_k (float): Giá trị nghiệm xấp xỉ ở bước lặp thứ k
+        x_prev (float): Giá trị nghiệm xấp xỉ ở bước lặp thứ k-1
+        m1 (float): Cận dưới của |f'(x)| trên khoảng cách ly (m1 > 0)
+        M1 (float): Cận trên của |f'(x)| trên khoảng cách ly (M1 >= m1)
+    Ensure (Đầu ra):
+        float: Giá trị cận trên sai số tuyệt đối tại bước lặp k
+    """
+
+    # Kiểm tra điều kiện đầu vào m1, M1
+    if m1 <= 0:
+        raise ValueError("Cận m1 phải lớn hơn 0")
+    if M1 < m1: 
+        raise ValueError("Cận M1 phải lớn hơn hoặc bằng m1")
+
+    err = ((M1 - m1) / m1) * abs(x_k - x_prev) # Tính sai số theo công thức
+
+    return float(err) # Trả về giá trị sai số
+
+# Phương pháp dây cung
+def false_position(f, a, b, eps=1e-5, n_max=50) -> tuple[float, int, float]:
+    """
+    Tìm nghiệm gần đúng của f(x) = 0 bằng phương pháp dây cung.
+    Require:
+        f: Hàm số liên tục trên [a, b].
+        a, b: Hai đầu mút, a < b.
+        eps: Sai số cho phép, eps > 0.
+        n_max: Số bước lặp tối đa, n_max là số nguyên dương.
+        Hai đầu mút trái dấu, trừ khi một đầu mút là nghiệm.
+    Ensure:
+        Trả về (xn, i, err):
+            xn: Nghiệm gần đúng.
+            i: Số bước lặp đã thực hiện.
+            err: Sai số giữa hai lần lặp liên tiếp.
+        Cảnh báo nếu hết n_max bước mà chưa đạt eps.
+    Algorithm: Phương pháp dây cung (Algorithm 6 trong giáo trình).
+    """
+
+    # Kiểm tra điều kiện đầu vào
+    if not callable(f):
+        raise TypeError("f phải là một hàm số.")
+    if a >= b:
+        raise ValueError("Phải có a < b.")
+    if eps <= 0:
+        raise ValueError("eps phải lớn hơn 0.")
+    if not isinstance(n_max, int) or isinstance(n_max, bool) or n_max < 1:
+        raise ValueError("n_max phải là số nguyên dương.")
+
+    # Tính giá trị hàm tại hai đầu mút
+    fa = f(a)
+    fb = f(b)
+
+    # Xử lý trường hợp đầu mút là nghiệm
+    if fa == 0: return float(a), 0, 0.0
+    if fb == 0: return float(b), 0, 0.0
+    if fa * fb > 0: # Kiểm tra điều kiện đổi dấu
+        raise ValueError("Khoảng [a, b] không thỏa mãn f(a)*f(b) < 0.")
+
+    xn = 0.0
+    err = 0.0
+
+    for i in range(1, n_max + 1): # dòng 1 - Thuật toán 6
+        if fa < 0: # dòng 2 - Thuật toán 6
+            x0 = a # dòng 3 - Thuật toán 6
+            # dòng 4 - Thuật toán 6: Tính xn <- xn-1 - f(xn-1)*(xn-1 - b) / (f(xn-1) - f(b)) 
+            mau_so = f(x0) - fb
+            if mau_so == 0: raise ZeroDivisionError("Mẫu số bằng 0")
+            xn = (x0 - f(x0) * (x0 - b)) / mau_so
+        else: # dòng 5 - Thuật toán 6
+            x0 = b # dòng 6 - Thuật toán 6
+            # dòng 7 - Thuật toán 6: Tính xn <- xn-1 - f(xn-1)*(xn-1 - a) / (f(xn-1) - f(a))
+            mau_so = f(x0) - fa
+            if mau_so == 0: raise ZeroDivisionError("Mẫu số bằng 0")
+            xn = (x0 - f(x0) * (x0 - a)) / mau_so
+        # dong 8: end if
+
+        err = abs(xn - x0) # dòng 9 - Thuật toán 6: Tính sai số
+
+        if err < eps: # dòng 10,11 - Thuật toán 6: Nếu sai số nhỏ hơn eps thì dừng
+            return float(xn), i, float(err)
+        # dòng 12 - Thuật toán 6: end if
+        # Cập nhật lại khoảng
+        fn = f(xn)
+        if fa * fn < 0:
+            b = xn
+            fb = fn
+        else:
+            a = xn
+            fa = fn
+        # dòng 13 - Thuật toán 6: end for
+
+    warnings.warn("Chưa đạt sai số yêu cầu sau số bước lặp tối đa", RuntimeWarning) # Cảnh báo nếu hết n_max bước mà chưa đạt eps
+    return float(xn), n_max, float(err) # Trả về nghiệm gần đúng, số bước lặp và sai số
 

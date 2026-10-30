@@ -21,8 +21,8 @@ def f2(x):
     return 5*x**3 - 20*x + 3
 
 
-# Nghiệm chính xác của f1 nằm trong khoảng (-1, 0). Giải phương trình 2^x - 5x - 3 = 0 bằng công thức nghiệm.
-ROOT1 = (5 - math.sqrt(37)) / 2
+# Nghiệm tham chiếu gần đúng của f1 trên khoảng (-1, 0). Nghiệm được tính bằng phương pháp số với độ chính xác cao.
+ROOT1 = -0.45399643850469835
 
 
 # Các nghiệm gần đúng của f2 theo đề bài. Dùng để so sánh kết quả do các phương pháp số tìm được.

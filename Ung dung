@@ -1,31 +1,31 @@
-"""Bài ứng dụng bổ sung : một bài giảng và một bài tập trong giáo trình.
+"""Bài ứng dụng 1 - BÀI GIẢNG: tính căn bậc hai của 2.
 
-Bài 1 (bài giảng, Ví dụ 3.1): tính căn bậc hai của 2, tức là giải x^2 - 2 = 0 trên (1; 2).
-Bài 2 (bài tập 3.10): tìm nghiệm dương nhỏ nhất của x^3 - 3,23x^2 - 5,64x + 9,84 = 0.
-Bài 3 (bài ngoài): lãi suất vay trả góp.
+ĐỀ BÀI (Giáo trình, Chương 3, mục 3.2, Ví dụ 3.1):
+    Cho phương trình f(x) = x^2 - 2 = 0.
+    a) Tìm nghiệm gần đúng trong khoảng phân ly (1; 2) bằng phương pháp chia đôi
+       với 6 bước lặp. Đánh giá sai số của nghiệm.
+    b) Nếu muốn sai số là eps = 10^-5 thì cần tối thiểu bao nhiêu bước lặp?
+    Đáp số của sách: x6 = 1,4140625, sai số 0,0078125; cần ít nhất 16 bước.
+    Nhóm làm thêm c): giải bằng cả dây cung, so sánh số bước lặp với chia đôi.
 
-GỌI các hàm của nhóm :
-    P1 isolate_roots  : tách khoảng chứa nghiệm
-    P2 bisection      : phương pháp chia đôi
-    P3 false_position : phương pháp dây cung
-    P4 bisection_steps: số bước chia đôi theo lý thuyết
+Chỉ GỌI các hàm của nhóm: P2 bisection, P3 false_position, P4 bisection_steps.
+Không dùng numpy.linalg, scipy... (R3).
 
-Chạy:  python ung_dung.py
+Chạy:  python ung_dung_bai1.py
 """
 import math
 
-# Tên module theo file Test. 
+# Tên module theo file Test của nhóm.
 from bisection import bisection                 # P2
-from danh_gia_sai_so import bisection_steps     # P4
+from error_estimation import bisection_steps     # P4 (file error_estimation.py)
 from false_position import false_position       # P3
-from isolate_roots import isolate_roots         # P1
 
-DANH_SACH_EPS = [1e-2, 1e-5, 1e-8]  # các mức sai số để so sánh
-N_MAX = 200                         # số bước lặp tối đa
+A, B = 1.0, 2.0                      # khoảng phân ly cho sẵn trong sách: f(1)*f(2) = (-1)*2 < 0
+DANH_SACH_EPS = [1e-2, 1e-5, 1e-8]   # các mức sai số để so sánh
+N_MAX = 200                          # số bước lặp tối đa
 
-# Hàm của từng bài
 def f_bai1(x):
-    """Bài 1 (Ví dụ 3.1): f(x) = x^2 - 2.
+    """Hàm của Bài 1: f(x) = x^2 - 2.
 
     Require: x là số thực.
     Ensure: trả về f(x). Nghiệm dương của f chính là căn bậc hai của 2.
@@ -33,8 +33,73 @@ def f_bai1(x):
     """
     return x * x - 2
 
+def bang_so_sanh(f, a, b, danh_sach_eps, n_max):
+    """Giải f(x) = 0 trên [a; b] bằng cả hai phương pháp với từng mức sai số.
+
+    Require: f(a)*f(b) < 0; danh_sach_eps gồm các số dương; n_max >= 1.
+    Ensure: trả về danh sách các bộ
+        (eps, x_chia_doi, k_chia_doi, k_ly_thuyet, x_day_cung, k_day_cung).
+    Thuật toán: chia đôi (P2), dây cung (P3), số bước lý thuyết (P4).
+    """
+    bang = []
+    for eps in danh_sach_eps:
+        x_cd, k_cd, _ = bisection(f, a, b, eps=eps, n_max=n_max)
+        x_dc, k_dc, _ = false_position(f, a, b, eps=eps, n_max=n_max)
+        bang.append((eps, x_cd, k_cd, bisection_steps(a, b, eps), x_dc, k_dc))
+    return bang
+
+def in_bang(bang):
+    """In bảng so sánh. Require: bang từ bang_so_sanh. Ensure: in ra màn hình."""
+    print(f"{'eps':>8} {'x chia đôi':>13} {'k':>3} {'k lý thuyết':>12} {'x dây cung':>13} {'k':>3}")
+    for eps, x_cd, k_cd, k_lt, x_dc, k_dc in bang:
+        print(f"{eps:8.0e} {x_cd:13.8f} {k_cd:3d} {k_lt:12d} {x_dc:13.8f} {k_dc:3d}")
+
+def main():
+    """Chạy Bài 1 và in kết quả."""
+    print("Bài 1 (Ví dụ 3.1): x^2 - 2 = 0 trên (1; 2), nghiệm là căn bậc hai của 2")
+
+    # Câu a: chia đôi với eps = 0,01 thì dừng sau 6 bước (sai số 1/2^7 = 0,0078125 <= 0,01)
+    x, k, err = bisection(f_bai1, A, B, eps=0.01, n_max=N_MAX)
+    print(f"  a) Chia đôi: x = {x}, k = {k}, sai số = {err}"
+          "  (sách: x6 = 1,4140625, sai số 0,0078125)")
+
+    # Câu b: số bước tối thiểu để đạt eps = 1e-5 theo công thức (P4)
+    print(f"  b) Số bước tối thiểu với eps = 1e-5 (P4): {bisection_steps(A, B, 1e-5)}  (sách: 16)")
+
+    # Câu c (làm thêm): so sánh chia đôi và dây cung
+    print("  c) So sánh chia đôi và dây cung:")
+    in_bang(bang_so_sanh(f_bai1, A, B, DANH_SACH_EPS, N_MAX))
+    print(f"  Đối chiếu: căn bậc hai của 2 = {math.sqrt(2):.8f}")
+
+
+if __name__ == "__main__":
+    main()
+
+"""Bài ứng dụng 2 - BÀI TẬP: nghiệm dương nhỏ nhất của phương trình bậc ba.
+
+ĐỀ BÀI (Bài tập Chương 3, Bài tập 3.10):
+    Tìm nghiệm dương nhỏ nhất của phương trình
+        x^3 - 3,23x^2 - 5,64x + 9,84 = 0
+    bằng phương pháp chia đôi.
+    Nhóm làm thêm: giải bằng cả dây cung, so sánh với số bước lý thuyết ở các mức
+    sai số eps = 10^-2, 10^-5, 10^-8.
+
+Chỉ GỌI các hàm của nhóm: P1 isolate_roots, P2 bisection, P3 false_position,
+P4 bisection_steps. Không dùng numpy.linalg, scipy... (R3).
+
+Chạy:  python ung_dung_bai2.py
+"""
+# Tên module theo file Test của nhóm. Nếu tên file trên repo khác thì chỉ cần sửa 4 dòng này.
+from bisection import bisection                 # P2
+from error_estimation import bisection_steps     # P4 (file error_estimation.py)
+from false_position import false_position       # P3
+from isolate_roots import isolate_roots         # P1
+
+DANH_SACH_EPS = [1e-2, 1e-5, 1e-8]  # các mức sai số để so sánh
+N_MAX = 200                         # số bước lặp tối đa
+
 def f_bai2(x):
-    """Bài 2 (Bài tập 3.10): f(x) = x^3 - 3,23x^2 - 5,64x + 9,84.
+    """Hàm của Bài 2: f(x) = x^3 - 3,23x^2 - 5,64x + 9,84.
 
     Require: x là số thực.
     Ensure: trả về f(x).
@@ -42,7 +107,6 @@ def f_bai2(x):
     """
     return x ** 3 - 3.23 * x ** 2 - 5.64 * x + 9.84
 
-# Các hàm dùng chung
 def nghiem_duong_nho_nhat(f, a, b, step):
     """Tìm khoảng chứa nghiệm dương nhỏ nhất của f trên [a; b] bằng isolate_roots (P1).
 
@@ -69,8 +133,8 @@ def bang_so_sanh(f, a, b, danh_sach_eps, n_max):
     """
     bang = []
     for eps in danh_sach_eps:
-        x_cd, k_cd, _ = bisection(f, a, b, eps, n_max)
-        x_dc, k_dc, _ = false_position(f, a, b, eps, n_max)
+        x_cd, k_cd, _ = bisection(f, a, b, eps=eps, n_max=n_max)
+        x_dc, k_dc, _ = false_position(f, a, b, eps=eps, n_max=n_max)
         bang.append((eps, x_cd, k_cd, bisection_steps(a, b, eps), x_dc, k_dc))
     return bang
 
@@ -80,43 +144,52 @@ def in_bang(bang):
     for eps, x_cd, k_cd, k_lt, x_dc, k_dc in bang:
         print(f"{eps:8.0e} {x_cd:13.8f} {k_cd:3d} {k_lt:12d} {x_dc:13.8f} {k_dc:3d}")
 
-# Chương trình chính
 def main():
-    """Chạy hai bài ứng dụng bổ sung và in kết quả."""
-    # --- Bài 1: Ví dụ 3.1, tính căn bậc hai của 2 ---
-    a, b = 1.0, 2.0  # khoảng phân ly cho sẵn trong sách: f(1)*f(2) = (-1)*2 < 0
-    print("Bài 1 (Ví dụ 3.1): x^2 - 2 = 0 trên (1; 2), nghiệm là căn bậc hai của 2")
-    x, k, err = bisection(f_bai1, a, b, 0.01, N_MAX)
-    print(f"  Chia đôi, eps = 0,01: x = {x}, k = {k}, sai số = {err}"
-          "  (sách: x6 = 1,4140625, sai số 0,0078125)")
-    print(f"  Số bước tối thiểu với eps = 1e-5 (P4): {bisection_steps(a, b, 1e-5)}  (sách: 16)")
-    in_bang(bang_so_sanh(f_bai1, a, b, DANH_SACH_EPS, N_MAX))
-    print(f"  Đối chiếu: căn bậc hai của 2 = {math.sqrt(2):.8f}")
-
-    # --- Bài 2: Bài tập 3.10, nghiệm dương nhỏ nhất của phương trình bậc ba ---
-    print("\nBài 2 (Bài tập 3.10): x^3 - 3,23x^2 - 5,64x + 9,84 = 0, nghiệm dương nhỏ nhất")
+    """Chạy Bài 2 và in kết quả."""
+    print("Bài 2 (Bài tập 3.10): x^3 - 3,23x^2 - 5,64x + 9,84 = 0, nghiệm dương nhỏ nhất")
     a, b = nghiem_duong_nho_nhat(f_bai2, 0.0, 5.0, 0.5)
     print(f"  Khoảng chứa nghiệm dương nhỏ nhất (P1): [{a}; {b}]")
     in_bang(bang_so_sanh(f_bai2, a, b, DANH_SACH_EPS, N_MAX))
-    x, _, _ = bisection(f_bai2, a, b, 1e-8, N_MAX)
+    x, _, _ = bisection(f_bai2, a, b, eps=1e-8, n_max=N_MAX)
     print(f"  Thay lại: f({x:.8f}) = {f_bai2(x):.2e}")
-
 
 if __name__ == "__main__":
     main()
 
-Bài 3: lãi suất vay trả góp.
 
-Một người vay P triệu đồng, trả đều A triệu đồng mỗi tháng trong N tháng.
-Lãi suất tháng r là nghiệm của phương trình
+"""Bài ứng dụng 3 - BÀI NGOÀI (đề của cô): lãi suất vay trả góp.
 
-    f(r) = A * (1 - (1 + r)^(-N)) / r - P = 0.
+ĐỀ BÀI:
+    Một người vay P = 500 triệu đồng, trả đều A = 12 triệu đồng mỗi tháng trong
+    N = 60 tháng. Lãi suất tháng r thỏa mãn
+        f(r) = A * (1 - (1 + r)^(-N)) / r - P = 0.
+    Tìm r với sai số 10^-8 bằng cả hai phương pháp (đáp số r ≈ 1,2833 %/tháng).
+    Khảo sát r khi A thay đổi từ 9 đến 15 triệu đồng; nhận xét điều gì xảy ra
+    khi A * N <= P.
+
+File này chỉ GỌI các hàm của nhóm (không cài lại thuật toán):
+    P1 isolate_roots  : tách khoảng chứa nghiệm
+    P2 bisection      : phương pháp chia đôi
+    P3 false_position : phương pháp dây cung
+    P4 bisection_steps: số bước chia đôi theo lý thuyết
+Không dùng numpy.linalg, scipy... (R3). numpy/matplotlib chỉ dùng để vẽ đồ thị.
+
+Chạy:  python ung_dung.py
+"""
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Tên module theo file Test của nhóm. 
+from bisection import bisection                 # P2
+from error_estimation import bisection_steps     # P4 (file error_estimation.py)
+from false_position import false_position       # P3
+from isolate_roots import isolate_roots         # P1
 
 # Số liệu của đề bài
 P = 500.0      # số tiền vay (triệu đồng)
 A = 12.0       # tiền trả mỗi tháng (triệu đồng)
 N = 60         # số tháng
-EPS = 10^-8     # sai số yêu cầu
+EPS = 1e-8     # sai số yêu cầu
 N_MAX = 200    # số bước lặp tối đa
 
 # 1. Mô hình hóa
@@ -148,14 +221,14 @@ def kiem_tra_tham_so(A, P, N):
     if int(N) != N or N < 1:
         raise ValueError("N phải là số nguyên dương.")
 
-# 2. Tìm khoảng chứa nghiệm (dùng P1) và giải (dùng P2, P3)
+#2 Tìm khoảng chứa nghiệm (dùng P1) và giải (dùng P2, P3)
 def tim_khoang_nghiem(A, P, N, step=0.01):
     """Tìm khoảng [a; b] chứa nghiệm r > 0 của f(r) = 0 bằng isolate_roots (P1).
 
-    Vì sao quét r trong [10^-6; 1]?
+    Vì sao quét r trong [1e-6; 1]?
       - f giảm theo r; khi r -> 0+ thì f -> A*N - P; khi r lớn thì f -> -P < 0.
       - Nên nếu A*N > P thì f đổi dấu đúng một lần với r > 0.
-      - Bắt đầu từ 10^-6 (không phải 0) để tránh chia cho 0; r = 1 là 100%/tháng, đủ lớn.
+      - Bắt đầu từ 1e-6 (không phải 0) để tránh chia cho 0; r = 1 là 100%/tháng, đủ lớn.
       - Nếu A*N <= P thì f(r) < 0 với mọi r > 0, không có lãi suất dương -> báo lỗi.
 
     Require: A, P > 0; N nguyên dương; step > 0.
@@ -164,7 +237,7 @@ def tim_khoang_nghiem(A, P, N, step=0.01):
     Thuật toán: tách nghiệm bằng quét dấu (P1).
     """
     kiem_tra_tham_so(A, P, N)
-    if A * N <= P + 10^-9:  # tình huống biên: tổng tiền trả không vượt số tiền vay (+1e-9 để bù sai số làm tròn)
+    if A * N <= P + 1e-9:  # tình huống biên: tổng tiền trả không vượt số tiền vay (+1e-9 để bù sai số làm tròn)
         raise ValueError("A*N <= P: tổng tiền trả không vượt số tiền vay, không có lãi suất dương.")
 
     def f(r):
@@ -174,7 +247,6 @@ def tim_khoang_nghiem(A, P, N, step=0.01):
     if len(cac_khoang) == 0:
         raise ValueError("Không tách được khoảng chứa nghiệm trong [1e-6; 1].")
     return cac_khoang[0]  # f đơn điệu nên chỉ có một khoảng
-
 
 def giai_lai_suat(A, P, N, eps, n_max, phuong_phap):
     """Tìm lãi suất tháng r bằng chia đôi hoặc dây cung.
@@ -192,9 +264,9 @@ def giai_lai_suat(A, P, N, eps, n_max, phuong_phap):
         return f_lai_suat(r, A, P, N)
 
     if phuong_phap == "chia_doi":  # bước 2: giải bằng P2
-        return bisection(f, a, b, eps, n_max)
+        return bisection(f, a, b, eps=eps, n_max=n_max)
     if phuong_phap == "day_cung":  # bước 2: giải bằng P3
-        return false_position(f, a, b, eps, n_max)
+        return false_position(f, a, b, eps=eps, n_max=n_max)
     raise ValueError('phuong_phap phải là "chia_doi" hoặc "day_cung".')
 
 # 3. Khảo sát khi A thay đổi
@@ -211,6 +283,7 @@ def khao_sat(danh_sach_A, P, N, eps, n_max):
         ket_qua.append((float(a_i), r_cd, k_cd, r_dc, k_dc))
     return ket_qua
 
+
 def in_bang(ket_qua):
     """In bảng kết quả khảo sát. Require: ket_qua từ khao_sat. Ensure: in ra màn hình."""
     print(f"{'A':>6} {'A*N':>6} {'r chia đôi (%)':>15} {'k':>3} {'r dây cung (%)':>15} {'k':>3}")
@@ -223,38 +296,38 @@ def ve_do_thi(ket_qua, ten_file="khao_sat_lai_suat.png"):
     Require: ket_qua từ khao_sat; ten_file là tên file ảnh.
     Ensure: tạo file ảnh tại ten_file.
     """
-   a_ds = [d[0] for d in ket_qua]        # danh sách các giá trị A: 9, 9.5, ..., 15
-   r_cd = [100 * d[1] for d in ket_qua]  # r của chia đôi, nhân 100 để đổi sang %
-   r_dc = [100 * d[3] for d in ket_qua]  # r của dây cung, cũng đổi sang %
-   k_cd = [d[2] for d in ket_qua]        # số bước lặp của chia đôi
-   k_dc = [d[4] for d in ket_qua]        # số bước lặp của dây cung
+    a_ds = [d[0] for d in ket_qua]
+    r_cd = [100 * d[1] for d in ket_qua]
+    r_dc = [100 * d[3] for d in ket_qua]
+    k_cd = [d[2] for d in ket_qua]
+    k_dc = [d[4] for d in ket_qua]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))
 
-    ax1.plot(a_ds, r_cd, "o-", label="Chia đôi")   # vẽ đường: trục x là A, trục y là r
-    ax1.plot(a_ds, r_dc, "x--", label="Dây cung")  # đường thứ hai
-    ax1.set_xlabel("A (triệu đồng/tháng)")         # tên trục ngang
-    ax1.set_ylabel("r (%/tháng)")                  # tên trục dọc
-    ax1.set_title("Lãi suất tháng r theo tiền trả A")  
-    ax1.grid(True)                                 # bật lưới 
-    ax1.legend()                                   # hiện chú thích (dùng các label ở trên)
+    ax1.plot(a_ds, r_cd, "o-", label="Chia đôi")
+    ax1.plot(a_ds, r_dc, "x--", label="Dây cung")
+    ax1.set_xlabel("A (triệu đồng/tháng)")
+    ax1.set_ylabel("r (%/tháng)")
+    ax1.set_title("Lãi suất tháng r theo tiền trả A")
+    ax1.grid(True)
+    ax1.legend()
 
     ax2.plot(a_ds, k_cd, "o-", label="Chia đôi")
     ax2.plot(a_ds, k_dc, "x--", label="Dây cung")
     ax2.set_xlabel("A (triệu đồng/tháng)")
     ax2.set_ylabel("Số bước lặp k")
-    ax2.set_title("Số bước lặp với eps = 10^-8")
+    ax2.set_title("Số bước lặp với eps = 1e-8")
     ax2.grid(True)
     ax2.legend()
-   
-    fig.tight_layout()                # tự chỉnh khoảng cách để chữ không đè lên nhau
-    fig.savefig(ten_file)             # lưu ra file ảnh
-    plt.close(fig)                    # đóng hình, giải phóng bộ nhớ
+
+    fig.tight_layout()
+    fig.savefig(ten_file, dpi=150)
+    plt.close(fig)
 
 # 4. Chương trình chính
 def main():
-    Chạy toàn bộ bài toán ứng dụng và in kết quả.
-    # Phần 1: A = 12, giải bằng hai phương pháp
+    """Chạy toàn bộ bài toán ứng dụng và in kết quả."""
+    # --- Phần 1: A = 12, giải bằng hai phương pháp ---
     a, b = tim_khoang_nghiem(A, P, N)
     print(f"[1] Khoảng chứa nghiệm (P1): [{a:.6f}; {b:.6f}]")
     print(f"    Số bước chia đôi theo lý thuyết (P4): {bisection_steps(a, b, EPS)}")
@@ -264,7 +337,7 @@ def main():
               f"err = {err:.2e}, |f(r)| = {abs(f_lai_suat(r, A, P, N)):.2e}")
     print("    Đáp số của đề: r ≈ 1,2833 %/tháng")
 
-    # Phần 2: khảo sát A từ 9 đến 15 
+    # --- Phần 2: khảo sát A từ 9 đến 15 ---
     danh_sach_A = np.arange(9.0, 15.0 + 1e-9, 0.5)
     ket_qua = khao_sat(danh_sach_A, P, N, EPS, N_MAX)
     print("\n[2] Khảo sát r khi A thay đổi từ 9 đến 15:")
@@ -272,13 +345,14 @@ def main():
     ve_do_thi(ket_qua)
     print("    Đã lưu đồ thị: khao_sat_lai_suat.png")
 
-    # Phần 3: tình huống A*N <= P
+    # --- Phần 3: tình huống A*N <= P ---
     print(f"\n[3] Tình huống A*N <= P (P = {P:.0f}, N = {N}, nên A <= {P / N:.3f}):")
     for a_loi in (8.0, P / N):
         try:
             giai_lai_suat(a_loi, P, N, EPS, N_MAX, "chia_doi")
         except ValueError as loi:
             print(f"    A = {a_loi:.3f} (A*N = {a_loi * N:.1f}): báo lỗi -> {loi}")
+
 
 if __name__ == "__main__":
     main()

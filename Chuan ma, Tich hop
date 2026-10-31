@@ -29,7 +29,7 @@ def isolate_roots(f, a, b, step) -> list[tuple[float, float]]:
         x_next = min(x_curr + step, float(b)) # Tính điểm tiếp theo, đảm bảo không vượt quá biên phải b
         y_curr = f(x_curr) # Tính giá trị hàm tại điểm hiện tại
         y_next = f(x_next) # Tính giá trị hàm tại điểm tiếp theo
-        
+
         if y_curr * y_next < 0: # Kiểm tra điều kiện đổi dấu
             intervals.append((x_curr, x_next)) # Nếu f(x) đổi dấu, ghi nhận khoảng (x_curr, x_next)
         elif y_curr == 0:
@@ -190,26 +190,31 @@ def false_position(f, a, b, eps=1e-5, n_max=50) -> tuple[float, int, float]:
     if fb == 0: return float(b), 0, 0.0
     if fa * fb > 0: # Kiểm tra điều kiện đổi dấu
         raise ValueError("Khoảng [a, b] không thỏa mãn f(a)*f(b) < 0.")
+    if fa < 0: # Chọn dự đoán ban đầu x0 = a nếu f(a) < 0, ngược lại x0 = b
+        x_prev = float(a)
+    else:
+        x_prev = float(b)
 
     xn = 0.0
     err = 0.0
 
     for i in range(1, n_max + 1): # dòng 1 - Thuật toán 6
+        fx_prev = f(x_prev) 
         if fa < 0: # dòng 2 - Thuật toán 6
             x0 = a # dòng 3 - Thuật toán 6
             # dòng 4 - Thuật toán 6: Tính xn <- xn-1 - f(xn-1)*(xn-1 - b) / (f(xn-1) - f(b)) 
-            mau_so = f(x0) - fb
+            mau_so = fx_prev - fb
             if mau_so == 0: raise ZeroDivisionError("Mẫu số bằng 0")
-            xn = x0 - f(x0) * (x0 - b) / mau_so
+            xn = x_prev - fx_prev * (x_prev - b) / mau_so
         else: # dòng 5 - Thuật toán 6
             x0 = b # dòng 6 - Thuật toán 6
             # dòng 7 - Thuật toán 6: Tính xn <- xn-1 - f(xn-1)*(xn-1 - a) / (f(xn-1) - f(a))
-            mau_so = f(x0) - fa
+            mau_so = fx_prev - fa
             if mau_so == 0: raise ZeroDivisionError("Mẫu số bằng 0")
-            xn = (x0 - f(x0) * (x0 - a)) / mau_so
+            xn = x_prev - fx_prev * (x_prev - a) / mau_so
         # dòng 8 - Thuật toán 6: end if
 
-        err = abs(xn - x0) # dòng 9 - Thuật toán 6: Tính sai số
+        err = abs(xn - x_prev) # dòng 9 - Thuật toán 6: Tính sai số
 
         if err < eps: # dòng 10,11 - Thuật toán 6: Nếu sai số nhỏ hơn eps thì dừng
             return float(xn), i, float(err)
@@ -222,6 +227,7 @@ def false_position(f, a, b, eps=1e-5, n_max=50) -> tuple[float, int, float]:
         else:
             a = xn
             fa = fn
+        x_prev = xn
         # dòng 13 - Thuật toán 6: end for
     warnings.warn("Chưa đạt sai số yêu cầu sau số bước lặp tối đa", RuntimeWarning) # Cảnh báo nếu hết n_max bước mà chưa đạt eps
     return float(xn), n_max, float(err) # Trả về nghiệm gần đúng, số bước lặp và sai số

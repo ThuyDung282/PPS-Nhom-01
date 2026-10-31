@@ -98,7 +98,7 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
         else:
             a = xn
             fa = fn
-        #Chuyển giao giá trị cho vòng lặp tiếp theo 
+        # Chuyển giao giá trị cho vòng lặp tiếp theo 
         x_prev = xn
 
     # dong 13: end for

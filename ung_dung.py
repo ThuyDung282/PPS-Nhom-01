@@ -2,7 +2,7 @@
 
   PHẦN 1 - Phương pháp chia đôi
     a) Chứng tỏ (-1; 0) là khoảng phân ly nghiệm. Tìm nghiệm gần đúng bằng phương pháp
-       chia đôi với n_max = 5 bước lặp và đánh giá sai số của nghiệm ở bước lặp đó.
+       chia đôi với n_max = 6 bước lặp và đánh giá sai số của nghiệm ở bước lặp đó.
     b) Nếu muốn sai số eps = 10^-6 thì cần tối thiểu bao nhiêu bước lặp?
 
   PHẦN 2 - Phương pháp dây cung (cùng phương trình, cùng khoảng (-1; 0))

@@ -1,6 +1,6 @@
 """Bài ứng dụng 1 - BÀI GIẢNG: tính căn bậc hai của 2.
 
-ĐỀ BÀI (Giáo trình, Chương 3, mục 3.2, Ví dụ 3.1):
+ĐỀ BÀI
     Cho phương trình f(x) = x^2 - 2 = 0.
     a) Tìm nghiệm gần đúng trong khoảng phân ly (1; 2) bằng phương pháp chia đôi
        với 6 bước lặp. Đánh giá sai số của nghiệm.
@@ -156,8 +156,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-"""Bài ứng dụng 3 - BÀI NGOÀI (đề của cô): lãi suất vay trả góp.
+"""Bài ứng dụng 3 (SV7) - BÀI NGOÀI (đề của cô): lãi suất vay trả góp.
 
 ĐỀ BÀI:
     Một người vay P = 500 triệu đồng, trả đều A = 12 triệu đồng mỗi tháng trong
@@ -172,13 +171,10 @@ File này chỉ GỌI các hàm của nhóm (không tự cài lại thuật toá
     P2 bisection      : phương pháp chia đôi
     P3 false_position : phương pháp dây cung
     P4 bisection_steps: số bước chia đôi theo lý thuyết
-Không dùng numpy.linalg, scipy... (R3). numpy/matplotlib chỉ dùng để vẽ đồ thị.
+Không dùng numpy.linalg, scipy... (R3).
 
 Chạy:  python ung_dung.py
 """
-import matplotlib.pyplot as plt
-import numpy as np
-
 # Tên module theo file Test của nhóm. 
 from bisection import bisection                 # P2
 from error_estimation import bisection_steps     # P4 (file error_estimation.py)
@@ -209,6 +205,7 @@ def f_lai_suat(r, A, P, N):
     if r <= 0:  # điều kiện áp dụng: chia cho r nên cần r > 0
         raise ValueError("Cần r > 0.")
     return A * (1 - (1 + r) ** (-N)) / r - P
+
 
 def kiem_tra_tham_so(A, P, N):
     """Kiểm tra dữ liệu đầu vào (R6).
@@ -247,6 +244,7 @@ def tim_khoang_nghiem(A, P, N, step=0.01):
     if len(cac_khoang) == 0:
         raise ValueError("Không tách được khoảng chứa nghiệm trong [1e-6; 1].")
     return cac_khoang[0]  # f đơn điệu nên chỉ có một khoảng
+
 
 def giai_lai_suat(A, P, N, eps, n_max, phuong_phap):
     """Tìm lãi suất tháng r bằng chia đôi hoặc dây cung.
@@ -289,39 +287,6 @@ def in_bang(ket_qua):
     for a_i, r_cd, k_cd, r_dc, k_dc in ket_qua:
         print(f"{a_i:6.1f} {a_i * N:6.0f} {100 * r_cd:15.6f} {k_cd:3d} {100 * r_dc:15.6f} {k_dc:3d}")
 
-def ve_do_thi(ket_qua, ten_file="khao_sat_lai_suat.png"):
-    """Vẽ r theo A và số bước lặp theo A, lưu ra file ảnh.
-
-    Require: ket_qua từ khao_sat; ten_file là tên file ảnh.
-    Ensure: tạo file ảnh tại ten_file.
-    """
-    a_ds = [d[0] for d in ket_qua]
-    r_cd = [100 * d[1] for d in ket_qua]
-    r_dc = [100 * d[3] for d in ket_qua]
-    k_cd = [d[2] for d in ket_qua]
-    k_dc = [d[4] for d in ket_qua]
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))
-
-    ax1.plot(a_ds, r_cd, "o-", label="Chia đôi")
-    ax1.plot(a_ds, r_dc, "x--", label="Dây cung")
-    ax1.set_xlabel("A (triệu đồng/tháng)")
-    ax1.set_ylabel("r (%/tháng)")
-    ax1.set_title("Lãi suất tháng r theo tiền trả A")
-    ax1.grid(True)
-    ax1.legend()
-
-    ax2.plot(a_ds, k_cd, "o-", label="Chia đôi")
-    ax2.plot(a_ds, k_dc, "x--", label="Dây cung")
-    ax2.set_xlabel("A (triệu đồng/tháng)")
-    ax2.set_ylabel("Số bước lặp k")
-    ax2.set_title("Số bước lặp với eps = 1e-8")
-    ax2.grid(True)
-    ax2.legend()
-
-    fig.tight_layout()
-    fig.savefig(ten_file, dpi=150)
-    plt.close(fig)
 
 # 4. Chương trình chính
 def main():
@@ -337,12 +302,10 @@ def main():
     print("    Đáp số của đề: r ≈ 1,2833 %/tháng")
 
     # --- Phần 2: khảo sát A từ 9 đến 15 ---
-    danh_sach_A = np.arange(9.0, 15.0 + 1e-9, 0.5)
+    danh_sach_A = [9.0 + 0.5 * i for i in range(13)]  # 9,0; 9,5; ...; 15,0
     ket_qua = khao_sat(danh_sach_A, P, N, EPS, N_MAX)
     print("\n[2] Khảo sát r khi A thay đổi từ 9 đến 15:")
     in_bang(ket_qua)
-    ve_do_thi(ket_qua)
-    print("    Đã lưu đồ thị: khao_sat_lai_suat.png")
 
     # --- Phần 3: tình huống A*N <= P ---
     print(f"\n[3] Tình huống A*N <= P (P = {P:.0f}, N = {N}, nên A <= {P / N:.3f}):")
@@ -355,3 +318,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -156,7 +156,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-"""Bài ứng dụng 3 (SV7) - BÀI NGOÀI (đề của cô): lãi suất vay trả góp.
+"""Bài ứng dụng 3 - BÀI NGOÀI (đề của cô): lãi suất vay trả góp.
 
 ĐỀ BÀI:
     Một người vay P = 500 triệu đồng, trả đều A = 12 triệu đồng mỗi tháng trong
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     Khảo sát r khi A thay đổi từ 9 đến 15 triệu đồng; nhận xét điều gì xảy ra
     khi A * N <= P.
 
-File này chỉ GỌI các hàm của nhóm (không tự cài lại thuật toán):
+GỌI các hàm của nhóm (không cài lại thuật toán):
     P1 isolate_roots  : tách khoảng chứa nghiệm
     P2 bisection      : phương pháp chia đôi
     P3 false_position : phương pháp dây cung

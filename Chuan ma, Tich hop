@@ -106,7 +106,6 @@ def bisection(f, a, b, eps=1e-5, n_max=50) -> tuple[float, int, float]:
     
     i = 0 # Biến đếm số bước lặp
     err = (b - a) / 2 # dòng 1 - Thuật toán 4 
-    x = (a + b) / 2 
     
     while err > eps and i < n_max + 1: # dòng 2 - Thuật toán 4
         x = (a + b) / 2 # dòng 3 - Thuật toán 4

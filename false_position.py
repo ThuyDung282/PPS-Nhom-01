@@ -46,22 +46,20 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
     # Kiểm tra điều kiện đổi dấu
     if fa * fb > 0:
         raise ValueError( "Khoảng [a, b] không thỏa mãn f(a)*f(b) < 0." )
-    # Khởi tạo điểm xuất phát 
+    # Chọn điểm xuất phát
     if fa < 0:
-        x_prev = float(a)
-    else :
-        x_prev = float(b)
+        x0 = a
+    else:
+        x0 = b
 
-    xn = 0.0
-    err = 0.0
-
+    # Gán giá trị ban đầu cho lần lặp
+     x_prev = x0
     # dong 1: for i = 1 -> n_max do
     for i in range(1, n_max + 1):
         fx_prev = f(x_prev)
 
         # dong 2-3: nếu f(a) < 0 thì x0 <- a 
         if fa < 0:
-            x0 = a
 
             # dong 4: Tính xn <- xn-1 - f(xn-1)*(xn-1 - b) / (f(xn-1) - f(b))
             mau_so = fx_prev - fb
@@ -71,7 +69,6 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
 
         else:
             # dong 5-6: ngược lại , x0 <- b
-            x0 = b
 
             # dong 7: Tính xn <- xn-1 - f(xn-1)*(xn-1 - a) / (f(xn-1) - f(a))
             mau_so = fx_prev - fa
@@ -80,11 +77,6 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
             xn = x_prev - fx_prev * (x_prev - a) / mau_so
 
         # dong 8: end if
-        fn = f(xn)
-        # Kiểm tra nếu xn chính là nghiệm tuyệt đối 
-        if fn == 0 or abs(xn - x_prev) < eps:
-            err = abs(xn - x_prev)
-            return float(xn), i, float(err)
 
         # dong 9: Tính err = |xn - x0|
         err = abs(xn - x_prev)
@@ -95,15 +87,7 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
 
         # dong 12: end if 
 
-        # Cập nhật lại khoảng tìm nghiệm [a, b] 
-    
-        if fa * fn < 0:
-            b = xn
-            fb = fn
-        else:
-            a = xn
-            fa = fn
-        # Chuyển giao giá trị cho vòng lặp tiếp theo 
+        # Cập nhật giá trị cho vòng lặp tiếp theo 
         x_prev = xn
 
     # dong 13: end for

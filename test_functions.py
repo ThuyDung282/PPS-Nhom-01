@@ -3,14 +3,17 @@ import warnings
 
 import pytest
 
-from numerical_methods import (
-    isolate_roots,
-    bisection,
-    false_position,
-    bisection_steps,
-    false_position_error,
-)
+# P1 – Tìm khoảng phân ly nghiệm
+from isolate_roots import isolate_roots
 
+# P2 – Phương pháp chia đôi
+from bisection import bisection
+
+# P3 – Phương pháp dây cung
+from false_position import false_position
+
+# P4 – Đánh giá sai số
+from error_estimation import ( bisection_steps,false_position_error)
 
 # =========================
 # P1 – isolate_roots
@@ -168,14 +171,24 @@ def test_false_position_works_when_left_endpoint_value_is_positive():
 
 
 def test_false_position_returns_exact_endpoint_root():
-    x, k, err = false_position(lambda t: t - 1, 1, 2)
-    assert (x, k, err) == (1.0, 0, 0.0)
+    x, k, err = false_position(
+        lambda x: x - 1,
+        1, 2,
+        1e-5, 50
+    )
+
+    assert x == 1.0
+    assert k == 0
+    assert err == 0.0
 
 
 def test_false_position_rejects_interval_without_sign_change():
     with pytest.raises(ValueError):
-        false_position(lambda t: t**2 + 1, -1, 1)
-
+        false_position(
+            lambda x: x**2 + 1,
+            -1, 1,
+            1e-5, 50
+        )
 
 @pytest.mark.parametrize(
     "a,b,eps,n_max",

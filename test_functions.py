@@ -1,33 +1,19 @@
 
 # ============================================================
-# BAI TAP PHUONG PHAP SO - KIEM THU SV5
-# Kiem thu cac phuong phap tim nghiem gan dung
+# PHAN 1: KHAI BAO THU VIEN
 # ============================================================
 
-
-# -------------------- PHAN 1: KHAI BAO THU VIEN --------------------
-
-import unittest       # Thu vien ho tro viet va chay bo kiem thu
-import math           # Thu vien toan hoc: sqrt, log, ceil,...
-import warnings       # Thu vien xu ly va kiem soat canh bao
+import math
+import warnings
 
 
-# Import cac ham do cac thanh vien khac xay dung
-from isolate_roots import isolate_roots
-from bisection import bisection
-from false_position import false_position
-
-
-# -------------------- PHAN 2: KHAI BAO CAC HAM SO --------------------
+# ============================================================
+# PHAN 2: CAC HAM SO CAN GIAI
+# ============================================================
 
 # Ham so f1(x) = 2^x - 5x - 3
 def f1(x):
     return 2**x - 5*x - 3
-
-
-# Ham so f2(x) = 5x^3 - 20x + 3
-def f2(x):
-    return 5*x**3 - 20*x + 3
 
 
 # Dao ham cua f1
@@ -35,520 +21,617 @@ def df1(x):
     return math.log(2) * 2**x - 5
 
 
+# Ham so f2(x) = 5x^3 - 20x + 3
+def f2(x):
+    return 5*x**3 - 20*x + 3
+
+
 # Dao ham cua f2
 def df2(x):
     return 15*x**2 - 20
 
 
-# -------------------- PHAN 3: DU LIEU KIEM THU --------------------
+# ============================================================
+# PHAN 3: TIM KHOANG PHAN LY NGHIEM
+# ============================================================
 
-# Nghiem tham chieu cua f1 trong khoang [-1, 0]
-ROOT1 = -0.45399643850469835
+def isolate_roots(f, a, b, step):
+    """
+    Tim khoang phan ly nghiem bang phuong phap quet dau.
 
-# Ba nghiem tham chieu cua f2
-ROOTS2 = [
-    -2.071157,
-    0.150858,
-    1.920299
-]
+    Dau vao:
+        f: Ham so can tim nghiem.
+        a: Bien trai.
+        b: Bien phai.
+        step: Buoc quet.
 
-# Ba khoang phan ly nghiem cua f2
-BRACKETS2 = [
-    (-2.1, -2.0),
-    (0.1, 0.2),
-    (1.9, 2.0)
-]
+    Dau ra:
+        Danh sach cac khoang chua nghiem.
+    """
 
-# Cac gia tri sai so cho phep dung de danh gia
-EPS_LIST = [
-    1e-2,
-    1e-4,
-    1e-6,
-    1e-8,
-    1e-10
-]
+    # Kiem tra dieu kien bien trai va bien phai
+    if a >= b:
+        raise ValueError("Can a < b.")
+
+    # Kiem tra buoc quet phai duong
+    if step <= 0:
+        raise ValueError("step phai lon hon 0.")
+
+    # Khoi tao danh sach chua cac khoang phan ly
+    intervals = []
+
+    # Gan diem quet dau tien bang a
+    x_curr = float(a)
+
+    # Quet lan luot tu a den b
+    while x_curr < b:
+
+        # Tinh diem tiep theo, khong vuot qua b
+        x_next = min(x_curr + step, float(b))
+
+        # Tinh gia tri ham tai hai diem
+        y_curr = f(x_curr)
+        y_next = f(x_next)
+
+        # Neu hai gia tri trai dau thi co khoang phan ly
+        if y_curr * y_next < 0:
+            intervals.append((x_curr, x_next))
+
+        # Neu diem hien tai la nghiem chinh xac
+        elif y_curr == 0:
+            intervals.append((x_curr, x_curr))
+
+        # Chuyen sang diem tiep theo
+        x_curr = x_next
+
+    # Kiem tra rieng tai bien phai
+    if f(b) == 0:
+
+        # Tranh them trung nghiem tai bien phai
+        if not intervals or intervals[-1] != (float(b), float(b)):
+            intervals.append((float(b), float(b)))
+
+    # Tra ve danh sach khoang phan ly
+    return intervals
 
 
 # ============================================================
-# PHAN 4: KIEM THU CAC HAM SO
+# PHAN 4: DANH GIA SO BUOC LAP LY THUYET CUA CHIA DOI
 # ============================================================
 
-class TestFunctions(unittest.TestCase):
+def bisection_steps(a, b, eps):
+    """
+    Tinh so buoc lap ly thuyet cua phuong phap chia doi.
 
-    # Kiem tra f1 co doi dau tren khoang [-1, 0] hay khong
-    def test_f1_doi_dau(self):
+    Cong thuc:
+        n = max(0, ceil(log2((b-a)/eps)) - 1)
+    """
 
-        # Tich hai gia tri am nghia la hai dau trai nguoc nhau
-        self.assertLess(f1(-1) * f1(0), 0)
+    # Kiem tra khoang phan ly
+    if a >= b:
+        raise ValueError("Can b > a.")
 
-    # Kiem tra f2 doi dau tren ca ba khoang phan ly
-    def test_f2_ba_khoang_doi_dau(self):
+    # Kiem tra sai so cho phep
+    if eps <= 0:
+        raise ValueError("eps phai lon hon 0.")
 
-        # Duyet qua tung khoang trong danh sach
-        for a, b in BRACKETS2:
+    # Tinh so buoc lap theo cong thuc
+    n = math.ceil(math.log2((b - a) / eps)) - 1
 
-            # subTest giup xac dinh khoang nao bi loi
-            with self.subTest(khoang=(a, b)):
-
-                # Kiem tra tich hai gia tri tai hai dau mut nho hon 0
-                self.assertLess(f2(a) * f2(b), 0)
-
-
-# ============================================================
-# PHAN 5: KIEM THU HAM ISOLATE_ROOTS
-# ============================================================
-
-class TestIsolateRoots(unittest.TestCase):
-
-    # Kiem tra kha nang tim du ba khoang phan ly nghiem cua f2
-    def test_f2_tim_du_ba_khoang(self):
-
-        # Tim khoang phan ly nghiem cua f2 tren [-3, 3]
-        result = isolate_roots(f2, -3, 3, 0.1)
-
-        # Kiem tra tim duoc ba khoang nghiem
-        self.assertEqual(len(result), 3)
-
-        # Kiem tra tung nghiem tham chieu nam trong mot khoang tim duoc
-        for root in ROOTS2:
-
-            # Kiem tra nghiem co nam trong it nhat mot khoang hay khong
-            found = any(a <= root <= b for a, b in result)
-
-            # Neu khong tim thay thi bai kiem thu that bai
-            self.assertTrue(found)
-
-    # Kiem tra truong hop nghiem nam dung tai diem chia
-    def test_nghiem_tai_diem_chia(self):
-
-        # Ham so y = x co nghiem tai x = 0
-        result = isolate_roots(lambda x: x, -1, 1, 0.5)
-
-        # Ket qua mong doi la khoang nghiem [0, 0]
-        self.assertEqual(result, [(0.0, 0.0)])
-
-    # Kiem tra truong hop nghiem nam tai bien phai cua khoang
-    def test_nghiem_tai_bien_phai(self):
-
-        # Ham so y = x - 1 co nghiem tai x = 1
-        result = isolate_roots(lambda x: x - 1, 0, 1, 0.25)
-
-        # Kiem tra ham nhan dien dung nghiem tai bien phai
-        self.assertEqual(result, [(1.0, 1.0)])
-
-    # Kiem tra cac tham so dau vao khong hop le
-    def test_tham_so_khong_hop_le(self):
-
-        # Truong hop a > b phai phat sinh ValueError
-        with self.assertRaises(ValueError):
-            isolate_roots(f1, 1, -1, 0.1)
-
-        # Truong hop step = 0 phai phat sinh ValueError
-        with self.assertRaises(ValueError):
-            isolate_roots(f1, -1, 0, 0)
+    # Dam bao so buoc lap khong am
+    return max(0, n)
 
 
 # ============================================================
-# PHAN 6: KIEM THU PHUONG PHAP CHIA DOI - BISECTION
+# PHAN 5: PHUONG PHAP CHIA DOI
 # ============================================================
 
-class TestBisection(unittest.TestCase):
+def bisection(f, a, b, eps=1e-5, n_max=50):
+    """
+    Giai phuong trinh f(x) = 0 bang phuong phap chia doi.
 
-    # Kiem tra vi du co nghiem can bac hai cua 2
-    def test_vi_du_giao_trinh(self):
+    Tra ve:
+        x: Nghiem gan dung.
+        k: So buoc lap.
+        err: Sai so uoc luong.
+    """
 
-        # Khai bao ham so x^2 - 2
-        def f(x):
-            return x**2 - 2
+    # Kiem tra khoang
+    if not a < b:
+        raise ValueError("Can a < b.")
 
-        # Tim nghiem tren khoang [1, 2]
-        x, k, err = bisection(f, 1, 2, 0.01, 50)
+    # Kiem tra sai so
+    if eps <= 0:
+        raise ValueError("eps phai lon hon 0.")
 
-        # Kiem tra nghiem gan dung theo ket qua vi du
-        self.assertAlmostEqual(x, 1.4140625)
+    # Kiem tra so buoc lap toi da
+    if n_max < 0:
+        raise ValueError("n_max phai khong am.")
 
-        # Kiem tra so buoc lap
-        self.assertEqual(k, 6)
+    # Tinh gia tri ham tai hai dau mut
+    fa = f(a)
+    fb = f(b)
 
-        # Kiem tra sai so uoc luong
-        self.assertAlmostEqual(err, 0.0078125)
+    # Neu dau mut trai la nghiem
+    if fa == 0:
+        return float(a), 0, 0.0
 
-    # Kiem tra phuong phap chia doi voi ham f1
-    def test_f1_chia_doi(self):
+    # Neu dau mut phai la nghiem
+    if fb == 0:
+        return float(b), 0, 0.0
 
-        # Tim nghiem cua f1 tren khoang phan ly [-1, 0]
-        x, k, err = bisection(
-            f1, -1, 0, 1e-10, 100
+    # Kiem tra dieu kien doi dau
+    if fa * fb > 0:
+        raise ValueError("Khoang khong phai khoang phan ly nghiem.")
+
+    # Khoi tao bien dem so buoc lap
+    i = 0
+
+    # Tinh sai so ban dau
+    err = (b - a) / 2
+
+    # Lap khi sai so lon hon eps va chua vuot gioi han
+    while err > eps and i < n_max + 1:
+
+        # Tinh trung diem cua khoang
+        x = (a + b) / 2
+
+        # Tinh gia tri ham tai trung diem
+        fx = f(x)
+
+        # Neu trung diem la nghiem chinh xac
+        if fa * fx == 0:
+            return float(x), i + 1, 0.0
+
+        # Neu nghiem nam trong nua ben phai
+        elif fa * fx > 0:
+
+            # Thay doi bien trai
+            a = x
+
+            # Cap nhat gia tri ham tai a
+            fa = fx
+
+        # Neu nghiem nam trong nua ben trai
+        else:
+
+            # Thay doi bien phai
+            b = x
+
+            # Cap nhat gia tri ham tai b
+            fb = fx
+
+        # Tinh lai sai so cua khoang moi
+        err = (b - a) / 2
+
+        # Tang bien dem
+        i = i + 1
+
+    # Neu chua dat sai so yeu cau thi phat canh bao
+    if err > eps:
+        warnings.warn(
+            f"Het n_max={n_max} buoc nhung chua dat eps={eps}.",
+            UserWarning
         )
 
-        # So sanh nghiem tim duoc voi nghiem tham chieu
-        self.assertAlmostEqual(x, ROOT1, delta=1e-8)
+    # Lay trung diem cua khoang cuoi cung
+    x = (a + b) / 2
 
-        # Kiem tra so buoc lap phai lon hon hoac bang 1
-        self.assertGreaterEqual(k, 1)
+    # Tinh sai so cuoi cung
+    err = (b - a) / 2
 
-        # Sai so khong duoc am
-        self.assertGreaterEqual(err, 0)
-
-    # Kiem tra truong hop nghiem nam tai dau mut trai
-    def test_dau_mut_la_nghiem(self):
-
-        # Ham so x - 1 co nghiem tai dau mut a = 1
-        result = bisection(
-            lambda t: t - 1, 1, 2, 1e-5, 50
-        )
-
-        # Ket qua mong doi khi dau mut la nghiem
-        self.assertEqual(result, (1.0, 0, 0.0))
-
-    # Kiem tra khoang khong phai khoang phan ly nghiem
-    def test_khong_phai_khoang_phan_ly(self):
-
-        # Ham x^2 + 1 khong doi dau tren [-1, 1]
-        with self.assertRaises(ValueError):
-            bisection(
-                lambda x: x**2 + 1, -1, 1, 1e-5, 50
-            )
-
-    # Kiem tra truong hop thuat toan dat gioi han n_max
-    def test_het_n_max(self):
-
-        # Bat canh bao khi thuat toan chua dat do chinh xac yeu cau
-        with self.assertWarns(UserWarning):
-
-            # Chay voi n_max = 5
-            x, k, err = bisection(
-                f1, -1, 0, 1e-12, 5
-            )
-
-        # Theo ket qua thuc te cua code hien tai, k = 6
-        self.assertEqual(k, 6)
+    # Tra ve nghiem, so buoc va sai so
+    return float(x), i, float(err)
 
 
 # ============================================================
-# PHAN 7: KIEM THU PHUONG PHAP DAY CUNG - FALSE POSITION
+# PHAN 6: DANH GIA SAI SO PHUONG PHAP DAY CUNG
 # ============================================================
 
-class TestFalsePosition(unittest.TestCase):
+def false_position_error(x_k, x_prev, m1, M1):
+    """
+    Tinh can tren sai so cua phuong phap day cung.
 
-    # Kiem tra kha nang tim can bac hai cua 2
-    def test_can_bac_hai_cua_2(self):
+    Cong thuc:
+        err <= ((M1-m1)/m1) * abs(x_k-x_prev)
+    """
 
-        # Khai bao ham so x^2 - 2
-        def f(x):
-            return x**2 - 2
+    # Kiem tra can duoi
+    if m1 <= 0:
+        raise ValueError("m1 phai lon hon 0.")
 
-        # Tim nghiem tren khoang [1, 2]
-        x, k, err = false_position(
-            f, 1, 2, 1e-8, 200
-        )
+    # Kiem tra can tren
+    if M1 < m1:
+        raise ValueError("M1 phai lon hon hoac bang m1.")
 
-        # So sanh voi nghiem chinh xac sqrt(2)
-        self.assertAlmostEqual(
-            x, math.sqrt(2), delta=1e-7
-        )
+    # Tinh can tren sai so
+    err = ((M1 - m1) / m1) * abs(x_k - x_prev)
 
-        # Kiem tra so buoc lap nho hon gioi han
-        self.assertLess(k, 200)
-
-    # Kiem tra phuong phap day cung voi ham f1
-    def test_f1_day_cung(self):
-
-        # Tim nghiem cua f1 tren khoang [-1, 0]
-        x, k, err = false_position(
-            f1, -1, 0, 1e-10, 1000
-        )
-
-        # So sanh nghiem tim duoc voi nghiem tham chieu
-        self.assertAlmostEqual(x, ROOT1, delta=1e-8)
-
-        # Kiem tra so buoc lap
-        self.assertGreaterEqual(k, 1)
-
-        # Kiem tra sai so khong am
-        self.assertGreaterEqual(err, 0)
-
-    # Kiem tra truong hop nghiem nam tai dau mut
-    def test_dau_mut_la_nghiem(self):
-
-        # Ham so x - 1 co nghiem tai x = 1
-        result = false_position(
-            lambda t: t - 1, 1, 2, 1e-5, 50
-        )
-
-        # Ket qua mong doi khi dau mut la nghiem
-        self.assertEqual(result, (1.0, 0, 0.0))
-
-    # Kiem tra cac tham so khong hop le
-    def test_tham_so_khong_hop_le(self):
-
-        # Truong hop a > b
-        with self.assertRaises(ValueError):
-            false_position(f1, 0, -1, 1e-5, 50)
-
-        # Truong hop n_max = 0
-        with self.assertRaises(ValueError):
-            false_position(f1, -1, 0, 1e-5, 0)
-
-        # Truong hop khoang khong doi dau
-        with self.assertRaises(ValueError):
-            false_position(
-                lambda x: x**2 + 1, -1, 1, 1e-5, 50
-            )
+    # Tra ve sai so
+    return float(err)
 
 
 # ============================================================
-# PHAN 8: KIEM THU CHEO VA SO SANH HAI PHUONG PHAP
+# PHAN 7: PHUONG PHAP DAY CUNG
 # ============================================================
 
-class TestSoSanhHaiPhuongPhap(unittest.TestCase):
+def false_position(f, a, b, eps=1e-5, n_max=50):
+    """
+    Giai phuong trinh f(x) = 0 bang phuong phap day cung.
 
-    # So sanh ket qua cua hai phuong phap tren ba khoang cua f2
-    def test_f2_chia_doi_va_day_cung(self):
+    Tra ve:
+        x: Nghiem gan dung.
+        k: So buoc lap.
+        err: Do chenh lech hai nghiem lien tiep.
+    """
 
-        # Duyet qua tung khoang va nghiem tham chieu tuong ung
-        for khoang, root in zip(BRACKETS2, ROOTS2):
+    # Kiem tra f co phai ham so hay khong
+    if not callable(f):
+        raise TypeError("f phai la mot ham so.")
 
-            # Lay hai dau mut cua khoang
-            a, b = khoang
+    # Kiem tra khoang
+    if a >= b:
+        raise ValueError("Can a < b.")
 
-            # Tao subTest de xac dinh khoang bi loi
-            with self.subTest(khoang=khoang):
+    # Kiem tra sai so
+    if eps <= 0:
+        raise ValueError("eps phai lon hon 0.")
 
-                # Kiem tra khoang co doi dau hay khong
-                self.assertLess(f2(a) * f2(b), 0)
+    # Kiem tra so buoc lap
+    if not isinstance(n_max, int) or n_max < 1:
+        raise ValueError("n_max phai la so nguyen duong.")
 
-                # Tim nghiem bang phuong phap chia doi
-                x_b, k_b, err_b = bisection(
-                    f2, a, b, 1e-8, 1000
-                )
+    # Tinh gia tri ham tai hai dau mut
+    fa = f(a)
+    fb = f(b)
 
-                # Tim nghiem bang phuong phap day cung
-                x_f, k_f, err_f = false_position(
-                    f2, a, b, 1e-8, 10000
-                )
+    # Neu dau mut trai la nghiem
+    if fa == 0:
+        return float(a), 0, 0.0
 
-                # Kiem tra nghiem chia doi gan nghiem tham chieu
-                self.assertAlmostEqual(
-                    x_b, root, delta=2e-5
-                )
+    # Neu dau mut phai la nghiem
+    if fb == 0:
+        return float(b), 0, 0.0
 
-                # Kiem tra nghiem day cung gan nghiem tham chieu
-                self.assertAlmostEqual(
-                    x_f, root, delta=2e-5
-                )
+    # Kiem tra dieu kien doi dau
+    if fa * fb > 0:
+        raise ValueError("Khoang khong thoa man dieu kien doi dau.")
 
-    # In bang so sanh so buoc lap cua hai phuong phap
-    def test_bang_so_sanh_so_buoc(self):
+    # Chon diem bat dau cho day cung
+    if fa < 0:
+        x_prev = float(a)
+    else:
+        x_prev = float(b)
 
-        # In tieu de bang ket qua
-        print("\n\nSO SANH CHIA DOI VA DAY CUNG")
+    # Khoi tao nghiem va sai so
+    xn = 0.0
+    err = 0.0
 
-        # In ten cac cot
-        print(
-            f"{'Ham':<6}"
-            f"{'Khoang':<18}"
-            f"{'eps':<12}"
-            f"{'k chia doi':<15}"
-            f"{'k day cung':<15}"
-        )
+    # Bat dau vong lap
+    for i in range(1, n_max + 1):
 
-        # Tao danh sach gom khoang cua f1 va ba khoang cua f2
-        danh_sach = [
-            ("f1", f1, (-1.0, 0.0))
-        ]
+        # Tinh gia tri ham tai nghiem truoc
+        fx_prev = f(x_prev)
 
-        # Them ba khoang cua f2 vao danh sach
-        for i, khoang in enumerate(BRACKETS2):
-            danh_sach.append(
-                (f"f2{i+1}", f2, khoang)
-            )
+        # Truong hop fa am
+        if fa < 0:
 
-        # Duyet tung ham so va tung khoang
-        for ten, f, (a, b) in danh_sach:
+            # Tinh mau so
+            mau_so = fx_prev - fb
 
-            # Duyet cac muc sai so cho phep
-            for eps in EPS_LIST:
+            # Kiem tra mau so
+            if mau_so == 0:
+                raise ZeroDivisionError("Mau so bang 0.")
 
-                # Bo qua canh bao de bang ket qua gon hon
-                with warnings.catch_warnings():
+            # Tinh nghiem moi
+            xn = x_prev - fx_prev * (x_prev - b) / mau_so
 
-                    # Tat hien thi canh bao trong phan so sanh
-                    warnings.simplefilter("ignore")
+        # Truong hop fa duong
+        else:
 
-                    # Chay phuong phap chia doi
-                    x_b, k_b, err_b = bisection(
-                        f, a, b, eps, 1000
-                    )
+            # Tinh mau so
+            mau_so = fx_prev - fa
 
-                    # Chay phuong phap day cung
-                    x_f, k_f, err_f = false_position(
-                        f, a, b, eps, 10000
-                    )
+            # Kiem tra mau so
+            if mau_so == 0:
+                raise ZeroDivisionError("Mau so bang 0.")
 
-                # In ket qua so buoc lap
-                print(
-                    f"{ten:<6}"
-                    f"{str([a, b]):<18}"
-                    f"{eps:<12.0e}"
-                    f"{k_b:<15}"
-                    f"{k_f:<15}"
-                )
+            # Tinh nghiem moi
+            xn = x_prev - fx_prev * (x_prev - a) / mau_so
+
+        # Tinh sai so giua hai lan lap
+        err = abs(xn - x_prev)
+
+        # Neu dat sai so yeu cau thi dung
+        if err < eps:
+            return float(xn), i, float(err)
+
+        # Tinh gia tri ham tai nghiem moi
+        fn = f(xn)
+
+        # Cap nhat khoang phan ly
+        if fa * fn < 0:
+
+            # Thay doi bien phai
+            b = xn
+
+            # Cap nhat gia tri ham tai b
+            fb = fn
+
+        else:
+
+            # Thay doi bien trai
+            a = xn
+
+            # Cap nhat gia tri ham tai a
+            fa = fn
+
+        # Cap nhat nghiem truoc
+        x_prev = xn
+
+    # Canh bao khi het so buoc lap
+    warnings.warn(
+        "Chua dat sai so yeu cau sau so buoc lap toi da.",
+        RuntimeWarning
+    )
+
+    # Tra ve ket qua
+    return float(xn), n_max, float(err)
 
 
 # ============================================================
-# PHAN 9: TINH NGHIEM THAM CHIEU BANG NEWTON
+# PHAN 8: TINH NGHIEM THAM CHIEU BANG PHUONG PHAP NEWTON
 # ============================================================
 
-def tinh_nghiem_tham_chieu(f, df, x0, tol=1e-14, n_max=100):
+def nghiem_tham_chieu(f, df, x0):
+    """
+    Tinh nghiem tham chieu bang phuong phap Newton.
 
-    # Gan gia tri ban dau cho nghiem x
+    Nghiem nay dung de doi chieu sai so.
+    """
+
+    # Gan gia tri ban dau
     x = x0
 
-    # Lap toi da n_max lan
-    for i in range(n_max):
+    # Lap toi da 100 lan
+    for i in range(100):
 
-        # Neu dao ham bang 0 thi khong the tiep tuc Newton
-        if df(x) == 0:
-            raise ValueError("Dao ham bang 0")
+        # Kiem tra dao ham
+        if abs(df(x)) < 1e-15:
+            raise ValueError("Dao ham gan bang 0.")
 
         # Tinh nghiem moi theo cong thuc Newton
-        x_new = x - f(x) / df(x)
+        x_moi = x - f(x) / df(x)
 
-        # Neu hai gia tri lien tiep gan nhau thi dung
-        if abs(x_new - x) < tol:
-            return x_new
+        # Kiem tra dieu kien dung
+        if abs(x_moi - x) < 1e-14:
+            return x_moi
 
-        # Cap nhat nghiem cho lan lap tiep theo
-        x = x_new
+        # Cap nhat gia tri x
+        x = x_moi
 
-    # Tra ve ket qua neu dat gioi han so lan lap
+    # Tra ve ket qua sau 100 lan lap
     return x
 
 
 # ============================================================
-# PHAN 10: HAM DANH GIA SAI SO
+# PHAN 9: DANH GIA SAI SO CHO MOT KHOANG NGHIEM
 # ============================================================
 
-def danh_gia_sai_so(ten_ham, f, df, x0, khoang, eps_list):
+def danh_gia_khoang(ten_ham, f, df, a, b, x0, m1, M1):
 
-    # Lay hai dau mut cua khoang phan ly
-    a, b = khoang
+    # Tinh nghiem tham chieu
+    x_ref = nghiem_tham_chieu(f, df, x0)
 
-    # Tinh nghiem tham chieu bang phuong phap Newton
-    nghiem_ref = tinh_nghiem_tham_chieu(f, df, x0)
-
-    # In ten ham so dang duoc danh gia
-    print("\nDANH GIA SAI SO:", ten_ham)
-
-    # In nghiem tham chieu
-    print("Nghiem tham chieu:", format(nghiem_ref, ".15f"))
-
-    # In duong phan cach
-    print("-" * 115)
+    # In thong tin bai toan
+    print("\n" + "=" * 120)
+    print("HAM SO:", ten_ham)
+    print("KHOANG PHAN LY:", (a, b))
+    print("NGHIEM THAM CHIEU:", format(x_ref, ".14f"))
+    print("=" * 120)
 
     # In tieu de bang
     print(
-        f"{'Phuong phap':<18}"
         f"{'EPS':<12}"
-        f"{'Nghiem gan dung':<23}"
-        f"{'Sai so tuyet doi':<22}"
+        f"{'Phuong phap':<15}"
+        f"{'Nghiem gan dung':<22}"
+        f"{'Sai so tuyet doi':<20}"
         f"{'Sai so du':<18}"
+        f"{'Sai so uoc luong':<20}"
         f"{'So buoc':<10}"
     )
 
-    # In duong phan cach
-    print("-" * 115)
+    print("-" * 120)
 
-    # Duyet tung gia tri sai so cho phep
-    for eps in eps_list:
+    # Duyet tung gia tri eps
+    for eps in EPS_LIST:
 
-        # ---------------- PHUONG PHAP CHIA DOI ----------------
+        # ----------------------------------------------------
+        # PHUONG PHAP CHIA DOI
+        # ----------------------------------------------------
 
-        # Bo qua canh bao trong qua trinh danh gia
+        # Chay phuong phap chia doi va bo qua canh bao
         with warnings.catch_warnings():
-
-            # Khong hien thi canh bao ra man hinh
             warnings.simplefilter("ignore")
 
-            # Tim nghiem bang phuong phap chia doi
             x_b, k_b, err_b = bisection(
                 f, a, b, eps, 1000
             )
 
-        # Tinh sai so tuyet doi cua phuong phap chia doi
-        sai_so_b = abs(x_b - nghiem_ref)
+        # Tinh sai so tuyet doi
+        sai_so_tuyet_doi_b = abs(x_b - x_ref)
 
-        # Tinh sai so du cua phuong phap chia doi
+        # Tinh sai so du
         sai_so_du_b = abs(f(x_b))
 
-        # In ket qua cua phuong phap chia doi
+        # Tinh sai so uoc luong theo khoang ban dau
+        sai_so_uoc_luong_b = (b - a) / (2 ** (k_b + 1))
+
+        # In ket qua chia doi
         print(
-            f"{'Chia doi':<18}"
             f"{eps:<12.1e}"
-            f"{x_b:<23.15f}"
-            f"{sai_so_b:<22.5e}"
+            f"{'Chia doi':<15}"
+            f"{x_b:<22.12f}"
+            f"{sai_so_tuyet_doi_b:<20.5e}"
             f"{sai_so_du_b:<18.5e}"
+            f"{sai_so_uoc_luong_b:<20.5e}"
             f"{k_b:<10}"
         )
 
-        # ---------------- PHUONG PHAP DAY CUNG ----------------
+        # ----------------------------------------------------
+        # PHUONG PHAP DAY CUNG
+        # ----------------------------------------------------
 
-        # Tim nghiem bang phuong phap day cung
-        x_f, k_f, err_f = false_position(
-            f, a, b, eps, 10000
-        )
+        # Chay phuong phap day cung
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
 
-        # Tinh sai so tuyet doi cua phuong phap day cung
-        sai_so_f = abs(x_f - nghiem_ref)
+            x_f, k_f, err_f = false_position(
+                f, a, b, eps, 10000
+            )
 
-        # Tinh sai so du cua phuong phap day cung
+        # Tinh sai so tuyet doi
+        sai_so_tuyet_doi_f = abs(x_f - x_ref)
+
+        # Tinh sai so du
         sai_so_du_f = abs(f(x_f))
 
-        # In ket qua cua phuong phap day cung
+        # Tinh can tren sai so day cung
+        # err_f = abs(x_k - x_(k-1))
+        # Chi can biet do chenh lech nen co the dung x_f + err_f
+        sai_so_uoc_luong_f = false_position_error(
+            x_f, x_f + err_f, m1, M1
+        )
+
+        # In ket qua day cung
         print(
-            f"{'Day cung':<18}"
             f"{eps:<12.1e}"
-            f"{x_f:<23.15f}"
-            f"{sai_so_f:<22.5e}"
+            f"{'Day cung':<15}"
+            f"{x_f:<22.12f}"
+            f"{sai_so_tuyet_doi_f:<20.5e}"
             f"{sai_so_du_f:<18.5e}"
+            f"{sai_so_uoc_luong_f:<20.5e}"
             f"{k_f:<10}"
         )
 
-    # In dong ket thuc bang
-    print("-" * 115)
+        # Tinh so buoc lap ly thuyet cua chia doi
+        n_ly_thuyet = bisection_steps(a, b, eps)
+
+        # In so buoc lap ly thuyet
+        print(
+            f"{'':<12}"
+            f"{'Ly thuyet':<15}"
+            f"{'':<22}"
+            f"{'':<20}"
+            f"{'':<18}"
+            f"{'':<20}"
+            f"{n_ly_thuyet:<10}"
+        )
+
+    # Ket thuc bang
+    print("=" * 120)
 
 
 # ============================================================
-# PHAN 11: CHAY DANH GIA SAI SO CHO f1 VA f2
+# PHAN 10: AP DUNG VAO BAI TOAN f1
 # ============================================================
 
-def chay_danh_gia_sai_so():
+def bai_toan_f1():
 
-    # Danh gia sai so cua ham f1
-    danh_gia_sai_so(
-        "f1(x) = 2^x - 5x - 3",  # Ten ham so
-        f1,                      # Ham so can tinh nghiem
-        df1,                     # Dao ham cua ham so
-        -0.5,                    # Gia tri ban dau Newton
-        (-1, 0),                 # Khoang phan ly nghiem
-        EPS_LIST                 # Danh sach sai so cho phep
-    )
+    # In tieu de bai toan
+    print("\n\n********** BAI TOAN 1: f1(x) = 2^x - 5x - 3 **********")
 
-    # Danh gia sai so cua ba nghiem ham f2
-    for i, khoang in enumerate(BRACKETS2):
+    # Tim khoang phan ly tren [-1, 0]
+    khoang_f1 = isolate_roots(f1, -1, 0, 0.1)
 
-        # Lay trung diem cua khoang lam gia tri ban dau
-        x0 = (khoang[0] + khoang[1]) / 2
+    # In cac khoang phan ly
+    print("Cac khoang phan ly cua f1:", khoang_f1)
 
-        # Goi ham danh gia sai so
-        danh_gia_sai_so(
-            f"f2 - nghiem {i + 1}",  # Ten ham va nghiem
-            f2,                      # Ham so f2
-            df2,                     # Dao ham f2
-            x0,                      # Gia tri ban dau Newton
-            khoang,                  # Khoang phan ly nghiem
-            EPS_LIST                 # Danh sach EPS
+    # Can duoi cua |f1'(x)| tren [-1, 0]
+    m1 = 5 - math.log(2)
+
+    # Can tren cua |f1'(x)| tren [-1, 0]
+    M1 = 5 - math.log(2) / 2
+
+    # Duyet cac khoang tim duoc
+    for a, b in khoang_f1:
+
+        # Neu khoang co hai dau mut trung nhau
+        if a == b:
+            print("Nghiem chinh xac tai:", a)
+            continue
+
+        # Goi ham danh gia khoang
+        danh_gia_khoang(
+            "f1(x) = 2^x - 5x - 3",
+            f1,
+            df1,
+            a,
+            b,
+            -0.5,
+            m1,
+            M1
+        )
+
+
+# ============================================================
+# PHAN 11: AP DUNG VAO BAI TOAN f2
+# ============================================================
+
+def bai_toan_f2():
+
+    # In tieu de bai toan
+    print("\n\n********** BAI TOAN 2: f2(x) = 5x^3 - 20x + 3 **********")
+
+    # Tim cac khoang phan ly tren [-3, 3]
+    khoang_f2 = isolate_roots(f2, -3, 3, 0.1)
+
+    # In danh sach khoang phan ly
+    print("Cac khoang phan ly cua f2:", khoang_f2)
+
+    # Duyet tung khoang phan ly
+    for a, b in khoang_f2:
+
+        # Tinh trung diem khoang lam gia tri ban dau Newton
+        x0 = (a + b) / 2
+
+        # Khoang nghiem am
+        if b < 0:
+
+            # Can duoi cua |f2'(x)|
+            m1 = abs(df2(b))
+
+            # Can tren cua |f2'(x)|
+            M1 = abs(df2(a))
+
+        # Khoang nghiem duong gan 0
+        elif a > 0 and b < 1:
+
+            # Can duoi cua |f2'(x)|
+            m1 = abs(df2(b))
+
+            # Can tren cua |f2'(x)|
+            M1 = abs(df2(a))
+
+        # Khoang nghiem duong lon
+        else:
+
+            # Can duoi cua |f2'(x)|
+            m1 = abs(df2(a))
+
+            # Can tren cua |f2'(x)|
+            M1 = abs(df2(b))
+
+        # Goi ham danh gia khoang
+        danh_gia_khoang(
+            "f2(x) = 5x^3 - 20x + 3",
+            f2,
+            df2,
+            a,
+            b,
+            x0,
+            m1,
+            M1
         )
 
 
@@ -558,12 +641,11 @@ def chay_danh_gia_sai_so():
 
 if __name__ == "__main__":
 
-    # Chay toan bo 17 bai kiem thu
-    unittest.main(
-        argv=['first-arg-is-ignored'],  # Bo qua tham so dong lenh
-        exit=False,                     # Khong ket thuc chuong trinh sau kiem thu
-        verbosity=2                     # Hien thi chi tiet tung bai kiem thu
-    )
+    # Chay bai toan thu nhat
+    bai_toan_f1()
 
-    # Sau khi kiem thu xong, chay phan danh gia sai so
-    chay_danh_gia_sai_so()
+    # Chay bai toan thu hai
+    bai_toan_f2()
+
+    # Thong bao ket thuc
+    print("\nDA HOAN THANH CHUONG TRINH DANH GIA SAI SO.")

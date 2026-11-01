@@ -31,7 +31,7 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
     if eps <= 0:
         raise ValueError("eps phải lớn hơn 0.")
 
-    if not isinstance(n_max, int) or isinstance(n_max, bool) or n_max < 1:
+    if not isinstance(n_max, int) or n_max < 1:
         raise ValueError("n_max phải là số nguyên dương.")
 
     # Tính giá trị hàm tại hai đầu mút

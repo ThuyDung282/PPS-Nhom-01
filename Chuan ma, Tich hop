@@ -29,7 +29,7 @@ def isolate_roots(f, a, b, step) -> list[tuple[float, float]]:
         x_next = min(x_curr + step, float(b)) # Tính điểm tiếp theo, đảm bảo không vượt quá biên phải b
         y_curr = f(x_curr) # Tính giá trị hàm tại điểm hiện tại
         y_next = f(x_next) # Tính giá trị hàm tại điểm tiếp theo
-
+        
         if y_curr * y_next < 0: # Kiểm tra điều kiện đổi dấu
             intervals.append((x_curr, x_next)) # Nếu f(x) đổi dấu, ghi nhận khoảng (x_curr, x_next)
         elif y_curr == 0:
@@ -70,7 +70,7 @@ def bisection_steps(a, b, eps) -> int:
     return max(0, int(n)) # Trả kết quả. Đảm bảo n không âm, nếu n < 0 thì trả về 0
 
 # Phương pháp chia đôi
-def bisection(f, a, b, eps=1e-5, n_max=50) -> tuple[float, int, float]:
+def bisection(f, a, b, eps, n_max) -> tuple[float, int, float]:
     """
     Giải phương trình f(x) = 0 bằng phương pháp chia đôi (theo Algorithm 4 trong bài giảng)
     Require (Đầu vào):
@@ -156,7 +156,7 @@ def false_position_error(x_k, x_prev, m1, M1) -> float:
     return float(err) # Trả về giá trị sai số
 
 # Phương pháp dây cung
-def false_position(f, a, b, eps=1e-5, n_max=50) -> tuple[float, int, float]:
+def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
     """
     Tìm nghiệm gần đúng của f(x) = 0 bằng phương pháp dây cung.
     Require:
@@ -190,24 +190,22 @@ def false_position(f, a, b, eps=1e-5, n_max=50) -> tuple[float, int, float]:
     if fb == 0: return float(b), 0, 0.0
     if fa * fb > 0: # Kiểm tra điều kiện đổi dấu
         raise ValueError("Khoảng [a, b] không thỏa mãn f(a)*f(b) < 0.")
-    if fa < 0: # Chọn dự đoán ban đầu x0 = a nếu f(a) < 0, ngược lại x0 = b
-        x_prev = float(a)
+    # Chọn điểm xuất phát
+    if fa < 0: # dòng 5,6 - Thuật toán 6
+        x0 = a
     else:
-        x_prev = float(b)
+        x0 = b
 
-    xn = 0.0
-    err = 0.0
+    x_prev = x0 # Khởi tạo nghiệm trước đó
 
     for i in range(1, n_max + 1): # dòng 1 - Thuật toán 6
         fx_prev = f(x_prev) 
         if fa < 0: # dòng 2 - Thuật toán 6
-            x0 = a # dòng 3 - Thuật toán 6
             # dòng 4 - Thuật toán 6: Tính xn <- xn-1 - f(xn-1)*(xn-1 - b) / (f(xn-1) - f(b)) 
             mau_so = fx_prev - fb
             if mau_so == 0: raise ZeroDivisionError("Mẫu số bằng 0")
             xn = x_prev - fx_prev * (x_prev - b) / mau_so
         else: # dòng 5 - Thuật toán 6
-            x0 = b # dòng 6 - Thuật toán 6
             # dòng 7 - Thuật toán 6: Tính xn <- xn-1 - f(xn-1)*(xn-1 - a) / (f(xn-1) - f(a))
             mau_so = fx_prev - fa
             if mau_so == 0: raise ZeroDivisionError("Mẫu số bằng 0")
@@ -219,15 +217,8 @@ def false_position(f, a, b, eps=1e-5, n_max=50) -> tuple[float, int, float]:
         if err < eps: # dòng 10,11 - Thuật toán 6: Nếu sai số nhỏ hơn eps thì dừng
             return float(xn), i, float(err)
         # dòng 12 - Thuật toán 6: end if
-        # Cập nhật lại khoảng
-        fn = f(xn)
-        if fa * fn < 0:
-            b = xn
-            fb = fn
-        else:
-            a = xn
-            fa = fn
-        x_prev = xn
+
+        x_prev = xn # Cập nhật nghiệm trước đó cho bước lặp tiếp theo
         # dòng 13 - Thuật toán 6: end for
     warnings.warn("Chưa đạt sai số yêu cầu sau số bước lặp tối đa", RuntimeWarning) # Cảnh báo nếu hết n_max bước mà chưa đạt eps
     return float(xn), n_max, float(err) # Trả về nghiệm gần đúng, số bước lặp và sai số

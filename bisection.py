@@ -44,13 +44,12 @@ def bisection(f, a, b, eps=1e-5, n_max=50):
     
     i = 0
     err = (b - a) / 2                   # dòng 1 - Thuật toán 4: err ← (b - a)/2
-    x = (a + b) / 2                     # Để hàm vẫn trả kết quả hợp lệ khi eps lớn hơn nửa độ rộng khoảng ban đầu
-    
+   
     while err > eps and i < n_max + 1:  # dòng 2 - Thuật toán 4: while err > eps and i < n_max + 1
         x = (a + b) / 2                 # dòng 3 - Thuật toán 4: x ← (a + b)/2
         fx = f(x)                       # dòng 4 - Thuật toán 4: tính f(x)
         if fa * fx == 0:                # dòng 5 - Thuật toán 4: if f(a)f(x) = 0
-            return x, i + 1, 0.0        # dòng 6 - Thuật toán 4: dừng, x là nghiệm
+            return float(x), i + 1, 0.0        # dòng 6 - Thuật toán 4: dừng, x là nghiệm
         # dòng 7 - Thuật toán 4: else if f(a)f(x) > 0
         elif fa * fx > 0: 
             a = x                       # dòng 8 - Thuật toán 4: a ← x        
@@ -59,6 +58,7 @@ def bisection(f, a, b, eps=1e-5, n_max=50):
         # dòng 10 - Thuật toán 4: else f(a)f(x) < 0
         else:                       
             b = x                       # dòng 11 - Thuật toán 4: b ← x
+            fb = fx                     # lưu f(b) mới
             err = (b - a) / 2           # dòng 12 - Thuật toán 4: err ← (b - a)/2
         i = i + 1                       # dòng 13-14 - Thuật toán 4: end if và gán i ← i + 1
     # dòng 15 - Thuật toán 4: end while (kết thúc vòng lặp)
@@ -69,6 +69,6 @@ def bisection(f, a, b, eps=1e-5, n_max=50):
             f"(err={err}).",
             UserWarning,
         )
-    x = (a + b) / 2                 # trung điểm khoảng sau khi thu hẹp
+    x = (a + b) / 2                     # trung điểm khoảng sau khi thu hẹp
     err = (b - a) / 2
-    return x, i, err                     # dòng 16 - Thuật toán 4: return x, i, err
+    return float(x), i, float(err)      # dòng 16 - Thuật toán 4: return x, i, err

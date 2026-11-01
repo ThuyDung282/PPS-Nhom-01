@@ -567,3 +567,5 @@ def test_bisection_and_false_position_agree_on_same_root(
     # Kiểm tra sai số của hai phương pháp
     assert eb < 1e-8
     assert ef < 1e-8
+#python -m pip install numpy:cài đặt numpy
+#pytest -v test_functions.py: chạy chương trình

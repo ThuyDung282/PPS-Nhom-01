@@ -80,7 +80,7 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
             xn = x_prev - fx_prev * (x_prev - a) / mau_so
 
         # dong 8: end if
-        fn = f(n)
+        fn = f(xn)
         # Kiểm tra nếu xn chính là nghiệm tuyệt đối 
         if fn == 0 or abs(xn - x_prev) < eps:
             err = abs(xn - x_prev)

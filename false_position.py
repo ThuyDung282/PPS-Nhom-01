@@ -53,7 +53,7 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
         x0 = b
 
     # Gán giá trị ban đầu cho lần lặp
-     x_prev = x0
+    x_prev = x0
     # dong 1: for i = 1 -> n_max do
     for i in range(1, n_max + 1):
         fx_prev = f(x_prev)

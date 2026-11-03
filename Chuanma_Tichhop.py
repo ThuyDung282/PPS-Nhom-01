@@ -144,7 +144,7 @@ def bisection(f, a, b, eps, n_max) -> tuple[float, int, float]:
     x = (a + b) / 2 # trung điểm của khoảng sau khi thu hẹp
     err = (b - a) / 2 # sai số tại bước lặp cuối cùng
     return float(x), n_max, float(err) # dòng 16 - Thuật toán 4: Trả về nghiệm gần đúng, số bước lặp và sai số
-
+    
 # 3. PHƯƠNG PHÁP DÂY CUNG & ĐÁNH GIÁ SAI SỐ
 # Đánh giá sai số
 def false_position_error(x_k, x_prev, m1, M1) -> float:
@@ -231,7 +231,7 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
 
     warnings.warn("Chưa đạt sai số yêu cầu sau số bước lặp tối đa", RuntimeWarning) # Cảnh báo nếu hết n_max bước mà chưa đạt eps
     return float(xn), n_max, float(err) # Trả về nghiệm gần đúng, số bước lặp và sai số
-
+    
 # 4. BỘ KIỂM THỬ
 # Hàm số và đạo hàm của bài toán
 def f1(x): return 2**x - 5*x - 3
@@ -508,7 +508,7 @@ def false_position_history(f, a, b, eps=1e-5, n_max=50):
             return xn, i, err, pd.DataFrame(history)
         x_prev = xn
     return float(xn), n_max, float(err), pd.DataFrame(history)
-
+    
 """
 Bài 1  - BÀI GIẢNG: Ví dụ 3.1, giải f(x) = 2^x - 5x - 3 = 0 trên (-1; 0).
   Phần 1 - Chia đôi:
@@ -521,7 +521,7 @@ print("BÀI 1: GIẢI PHƯƠNG TRÌNH f(x) = 2^x - 5x - 3 = 0 TRÊN (-1, 0)")
 def f1(x):
     return 2**x - 5*x - 3
 # Kiểm tra khoảng phân ly
-print("\nKiểm tra khoảng phân ly nghiệm") 
+print("\nKiểm tra khoảng phân ly nghiệm")
 check_isolate_roots(f1, -1.0, 0.0)
 # Phương pháp chia đôi
 print("\nPhương pháp Chia đôi (n_max = 6)")
@@ -529,7 +529,6 @@ x1, k1, err1, df1 = bisection_history(f1, -1.0, 0.0, eps=1e-6, n_max=6)
 print(df1.to_string(index=False)) # In ra bảng lịch sử các bước lặp
 print(f"\n-> Nghiệm gần đúng tại bước {k1}: x = {x1:.6f}")
 print(f"-> Sai số tại bước {k1}: err = {err1:.6f}")
-print(f"-> Đánh giá sai số lý thuyết bước {k1}: (b - a)/2^6 = (0 - (-1))/64 = {1/64:.6f}")
 n1_min = bisection_steps(-1.0, 0.0, eps=1e-6)
 print(f"-> Số bước lặp tối thiểu để đạt eps = 1e-6: {n1_min} bước lặp.")
 # Phương pháp dây cung
@@ -540,7 +539,7 @@ print(f"\n-> Nghiệm gần đúng tại bước {k1_fp}: x = {x1_fp:.6f}")
 print(f"-> Sai số tại bước {k1_fp}: err = {err1_fp:.6f}")
 
 """
-Bài 2 - (Bài tập Chương 3, Bài tập 3.10): 
+Bài 2 - (Bài tập Chương 3, Bài tập 3.10):
 Tìm nghiệm dương nhỏ nhất của phương trình x^3 - 3,23x^2 - 5,64x + 9,84 = 0 bằng phương pháp chia đôi và dây cung.
 """
 print("\nBÀI 2: GIẢI PHƯƠNG TRÌNH f(x) = x^3 - 3,23x^2 - 5,64x + 9,84 = 0 ")
@@ -560,7 +559,6 @@ x2_bi, k2_bi, err2_bi, df2_bi = bisection_history(f2, a2, b2, eps=1e-5, n_max=50
 print(df2_bi.to_string(index=False))
 print(f"\n-> Nghiệm gần đúng tại bước {k2_bi}: x = {x2_bi:.6f}")
 print(f"-> Sai số tại bước {k2_bi}: err = {err2_bi:.6f}")
-print(f"-> Đánh giá sai số lý thuyết bước {k2_bi}: e = (b - a)/2^(k+1) = {(b2 - a2) / (2**(k2_bi + 1)):.6f}")
 n2_min = bisection_steps(a2, b2, eps=1e-5)
 print(f"-> Số bước lặp tối thiểu để đạt eps = 1e-5: {n2_min} bước lặp.")
 # Phương pháp dây cung
@@ -611,7 +609,6 @@ for A_val in range(9, 16):
     })
 df_survey = pd.DataFrame(survey_results)
 print(df_survey.to_string(index=False))
-
 print("\nNHẬN XÉT KHI A * N <= P")
 print("""
 • Về mặt Toán học:

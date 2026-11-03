@@ -144,7 +144,7 @@ def bisection(f, a, b, eps, n_max) -> tuple[float, int, float]:
     x = (a + b) / 2 # trung điểm của khoảng sau khi thu hẹp
     err = (b - a) / 2 # sai số tại bước lặp cuối cùng
     return float(x), n_max, float(err) # dòng 16 - Thuật toán 4: Trả về nghiệm gần đúng, số bước lặp và sai số
-    
+
 # 3. PHƯƠNG PHÁP DÂY CUNG & ĐÁNH GIÁ SAI SỐ
 # Đánh giá sai số
 def false_position_error(x_k, x_prev, m1, M1) -> float:
@@ -228,15 +228,13 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
         # dòng 12 - Thuật toán 6: end if
         x_prev = xn # Cập nhật nghiệm trước đó cho bước lặp tiếp theo
         # dòng 13 - Thuật toán 6: end for
-
     warnings.warn("Chưa đạt sai số yêu cầu sau số bước lặp tối đa", RuntimeWarning) # Cảnh báo nếu hết n_max bước mà chưa đạt eps
     return float(xn), n_max, float(err) # Trả về nghiệm gần đúng, số bước lặp và sai số
-    
+
 # 4. BỘ KIỂM THỬ
 # Hàm số và đạo hàm của bài toán
 def f1(x): return 2**x - 5*x - 3
 def f2(x): return 5*x**3 - 20*x + 3
-
 # Danh sách các khoảng chứa nghiệm của phương trình bậc ba 5x^3 - 20x + 3 = 0 và nghiệm tham chiếu gần đúng
 CUBIC_ROOTS = [(-2.1, -2.0, -2.071157),(0.1, 0.2, 0.150858),(1.9, 2.0, 1.920299)]
 
@@ -249,7 +247,6 @@ def test_isolate_roots_finds_first_equation():
     assert a < b # Kiểm tra đầu trái nhỏ hơn đầu phải
     assert f1(a) * f1(b) < 0 # Kiểm tra hai đầu mút trái dấu
     assert a <= -0.453996 <= b # Kiểm tra nghiệm tham chiếu nằm trong khoảng
-
 def test_isolate_roots_finds_all_three_cubic_roots():
     """ Kiểm tra tìm đủ ba khoảng phân ly nghiệm của phương trình 5x^3 - 20x + 3 = 0 trên đoạn [-3, 3]. """
     intervals = isolate_roots(f2, -3, 3, 0.1) # Tìm các khoảng phân ly nghiệm với bước chia 0.1
@@ -261,12 +258,10 @@ def test_isolate_roots_finds_all_three_cubic_roots():
         assert intervals[i][1] < intervals[i + 1][0]
     for a, b in intervals: # Kiểm tra hai đầu mút của mỗi khoảng phân ly trái dấu
         assert f2(a) * f2(b) < 0
-
 def test_isolate_roots_returns_empty_for_interval_without_root():
     """ Kiểm tra trường hợp phương trình thứ nhất không có nghiệm trong đoạn khảo sát [1, 2]. """
     intervals = isolate_roots(f1, 1, 2, 0.1)
     assert intervals == []
-
 @pytest.mark.parametrize(
     "a, b, step",
     [
@@ -289,7 +284,6 @@ def test_bisection_solves_first_equation():
     assert abs(f1(x)) < 1e-5 # Kiểm tra giá trị hàm tại nghiệm gần bằng 0
     assert k > 0 # Kiểm tra số bước lặp dương
     assert err < 1e-8 # Kiểm tra sai số nhỏ hơn eps
-
 @pytest.mark.parametrize("a, b, expected",CUBIC_ROOTS,)
 def test_bisection_solves_three_cubic_roots(a, b, expected):
     """ Kiểm tra phương pháp chia đôi tìm đủ ba nghiệm của phương trình 5x^3 - 20x + 3 = 0. """
@@ -320,7 +314,6 @@ def test_bisection_warns_when_max_iterations_are_exhausted():
     """ Kiểm tra cảnh báo khi phương pháp chia đôi hết số bước lặp mà chưa đạt sai số yêu cầu. """
     with pytest.warns(UserWarning):
         bisection(f1, -1, 0, eps=1e-15, n_max=1)
-
 @pytest.mark.parametrize(
     "a, b, eps, n_max",
     [
@@ -342,7 +335,6 @@ def test_false_position_solves_first_equation():
     assert abs(f1(x)) < 1e-5 # Kiểm tra giá trị hàm tại nghiệm gần bằng 0
     assert k > 0 # Kiểm tra số bước lặp dương
     assert err < 1e-8 # Kiểm tra sai số nhỏ hơn eps
-
 @pytest.mark.parametrize("a, b, expected", CUBIC_ROOTS,)
 def test_false_position_solves_three_cubic_roots(a, b, expected):
     """ Kiểm tra phương pháp dây cung tìm ba nghiệm của phương trình 5x^3 - 20x + 3 = 0. """
@@ -374,7 +366,6 @@ def test_false_position_rejects_non_callable_function():
 def test_false_position_warns_when_max_iterations_are_exhausted():
     """ Kiểm tra cảnh báo khi phương pháp dây cung hết số bước lặp tối đa mà chưa đạt sai số yêu cầu. """
     with pytest.warns(RuntimeWarning): false_position(f1, -1, 0, eps=1e-15, n_max=1)
-
 @pytest.mark.parametrize(
     "a, b, eps, n_max",
     [
@@ -396,7 +387,6 @@ def test_bisection_steps_matches_theoretical_formula():
 def test_bisection_steps_never_returns_negative_number():
     """ Kiểm tra số bước lặp không âm khi sai số cho phép lớn hơn độ dài đoạn khảo sát. """
     assert bisection_steps(0, 1, 2) == 0
-
 @pytest.mark.parametrize(
     "a, b, eps",
     [
@@ -508,7 +498,7 @@ def false_position_history(f, a, b, eps=1e-5, n_max=50):
             return xn, i, err, pd.DataFrame(history)
         x_prev = xn
     return float(xn), n_max, float(err), pd.DataFrame(history)
-    
+
 """
 Bài 1  - BÀI GIẢNG: Ví dụ 3.1, giải f(x) = 2^x - 5x - 3 = 0 trên (-1; 0).
   Phần 1 - Chia đôi:

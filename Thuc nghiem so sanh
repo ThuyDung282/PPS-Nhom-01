@@ -1,1 +1,77 @@
+import matplotlib.pyplot as plt
+print("\n" + "="*70)
+print("SV6 - THỰC NGHIỆM SO SÁNH PHƯƠNG PHÁP CHIA ĐÔI VÀ DÂY CUNG")
+print("="*70)
+# 1. So sánh số bước lặp với ε = 10^{-2} ... 10^{-10}
+def so_sanh_so_buoc(f, a, b, ten_ham):
+    """
+    So sánh số bước lặp thực tế của chia đôi, dây cung
+    và số bước lý thuyết của chia đôi.
+    """
+    print(f"\nBảng so sánh số bước lặp – {ten_ham}")
+    print(f"{'eps':>12} | {'Chia đôi':>12} | {'Lý thuyết':>12} | {'Dây cung':>12}")
+    print("-"*60)
+    
+    for p in range(2, 11):
+        eps = 10**(-p)
+        # Số bước thực tế chia đôi
+        _, k_bi, _ = bisection(f, a, b, eps=eps, n_max=1000)
+        # Số bước lý thuyết
+        k_lt = bisection_steps(a, b, eps)
+        # Số bước thực tế dây cung
+        _, k_fp, _ = false_position(f, a, b, eps=eps, n_max=1000)
+        
+        print(f"{eps:12.0e} | {k_bi:12d} | {k_lt:12d} | {k_fp:12d}")
+print("\n--- Thực nghiệm với hàm f(x) = 2^x - 5x - 3 trên [-1, 0] ---")
+f1 = lambda x: 2**x - 5*x - 3
+so_sanh_so_buoc(f1, -1.0, 0.0, "f(x) = 2^x - 5x - 3")
+# 2. Vẽ đồ thị |x_k - x*| theo k (trục tung thang log)
+def ve_do_thi_sai_so(f, a, b, x_star, tieu_de):
+    """Vẽ đồ thị sai số tuyệt đối theo số bước lặp (thang log)."""
+    #  các xấp xỉ của phương pháp chia đôi
+    aa, bb = a, b
+    xs_bi = []
+    for i in range(26):
+        x = (aa + bb) / 2
+        xs_bi.append(x)
+        if f(aa) * f(x) > 0:
+            aa = x
+        else:
+            bb = x
 
+    # các xấp xỉ của phương pháp dây cung
+    fa, fb = f(a), f(b)
+    if fa < 0:
+        x_prev = a
+        fixed = b
+        f_fixed = fb
+    else:
+        x_prev = b
+        fixed = a
+        f_fixed = fa
+
+    xs_fp = [x_prev]
+    for i in range(25):
+        fx = f(x_prev)
+        xn = x_prev - fx * (x_prev - fixed) / (fx - f_fixed)
+        xs_fp.append(xn)
+        x_prev = xn
+
+    # Tính sai số
+    sai_bi = [abs(x - x_star) if abs(x - x_star) > 0 else 1e-16 for x in xs_bi]
+    sai_fp = [abs(x - x_star) if abs(x - x_star) > 0 else 1e-16 for x in xs_fp]
+
+    # Vẽ đồ thị
+    plt.figure(figsize=(9, 5))
+    plt.semilogy(range(len(sai_bi)), sai_bi, 'b-o', label='Chia đôi', markersize=4)
+    plt.semilogy(range(len(sai_fp)), sai_fp, 'r-s', label='Dây cung', markersize=4)
+    plt.xlabel("Số bước lặp k")
+    plt.ylabel("|x_k - x*| (thang log)")
+    plt.title(tieu_de)
+    plt.grid(True, which="both", linestyle="--", alpha=0.6)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+print("\n--- Đồ thị sai số của phương pháp Chia đôi và Dây cung ---")
+ve_do_thi_sai_so(f1, -1.0, 0.0, -0.453996,
+                 "Sai số |x_k - x*| của f(x) = 2^x - 5x - 3 trên [-1, 0]")

@@ -32,9 +32,9 @@ def bisection(f, a, b, eps=1e-5, n_max=50):
 
     fa = f(a)
     fb = f(b)
-    if fa == 0:                      # Đầu mút a đã là nghiệm
+    if fa == 0:                      # Nếu f(a) = 0 thì a là nghiệm chính xác, trả về a, 0 bước lặp, sai số 0
         return float(a), 0, 0.0
-    if fb == 0:                      # Đầu mút b đã là nghiệm
+    if fb == 0:                      # Nếu f(b) = 0 thì b là nghiệm chính xác, trả về b, 0 bước lặp, sai số 0
         return float(b), 0, 0.0
     if fa * fb > 0:
         raise ValueError(
@@ -42,7 +42,7 @@ def bisection(f, a, b, eps=1e-5, n_max=50):
 
     # Xây dựng thuật toán - Algorithm 4: Phương pháp chia đôi
     
-    i = 0
+    i = 0                               # Biến đếm số bước lặp
     err = (b - a) / 2                   # dòng 1 - Thuật toán 4: err ← (b - a)/2
    
     while err > eps and i < n_max + 1:  # dòng 2 - Thuật toán 4: while err > eps and i < n_max + 1
@@ -50,13 +50,11 @@ def bisection(f, a, b, eps=1e-5, n_max=50):
         fx = f(x)                       # dòng 4 - Thuật toán 4: tính f(x)
         if fa * fx == 0:                # dòng 5 - Thuật toán 4: if f(a)f(x) = 0
             return float(x), i + 1, 0.0        # dòng 6 - Thuật toán 4: dừng, x là nghiệm
-        # dòng 7 - Thuật toán 4: else if f(a)f(x) > 0
-        elif fa * fx > 0: 
+        elif fa * fx > 0:               # dòng 7 - Thuật toán 4: else if f(a)f(x) > 0
             a = x                       # dòng 8 - Thuật toán 4: a ← x        
             fa = fx                     # lưu f(a) mới
             err = (b - a) / 2           # dòng 9 - Thuật toán 4: err ← (b - a)/2
-        # dòng 10 - Thuật toán 4: else f(a)f(x) < 0
-        else:                       
+        else:                           # dòng 10 - Thuật toán 4: else f(a)f(x) < 0
             b = x                       # dòng 11 - Thuật toán 4: b ← x
             fb = fx                     # lưu f(b) mới
             err = (b - a) / 2           # dòng 12 - Thuật toán 4: err ← (b - a)/2
@@ -64,11 +62,7 @@ def bisection(f, a, b, eps=1e-5, n_max=50):
     # dòng 15 - Thuật toán 4: end while (kết thúc vòng lặp)
     # Cảnh báo khi hết n_max mà chưa đạt eps
     if err > eps:
-        warnings.warn(
-            f"Hết n_max={n_max} bước nhưng chưa đạt sai số eps={eps} "
-            f"(err={err}).",
-            UserWarning,
-        )
+        warnings.warn(f"Hết n_max={n_max} bước nhưng chưa đạt sai số eps={eps} (err={err}).", UserWarning)
     x = (a + b) / 2                     # trung điểm khoảng sau khi thu hẹp
-    err = (b - a) / 2
-    return float(x), i, float(err)      # dòng 16 - Thuật toán 4: return x, i, err
+    err = (b - a) / 2                   # sai số tại bước lặp cuối cùng
+    return float(x), i, float(err)      # dòng 16 - Thuật toán 4: Trả về nghiệm gần đúng, số bước lặp và sai số

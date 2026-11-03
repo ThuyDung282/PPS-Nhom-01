@@ -22,7 +22,7 @@ def bisection(f, a, b, eps=1e-5, n_max=50):
 
            Nếu hết n_max bước mà chưa đạt sai số eps thì cảnh báo người dùng
     """
-    # Xử lý tình huống biên (R6)
+    # Xử lý tình huống biên
     if not a < b:
         raise ValueError("Cần a < b.")
     if eps <= 0:

@@ -543,19 +543,19 @@ Bài 2 - (Bài tập Chương 3, Bài tập 3.10):
 Tìm nghiệm dương nhỏ nhất của phương trình x^3 - 3,23x^2 - 5,64x + 9,84 = 0 bằng phương pháp chia đôi và dây cung.
 """
 print("\nBÀI 2: GIẢI PHƯƠNG TRÌNH f(x) = x^3 - 3,23x^2 - 5,64x + 9,84 = 0 ")
-def f2(x):
+def f2_app(x):
     return x**3 - 3.23*(x**2) - 5.64*x + 9.84
 # Quét khoảng phân ly nghiệm dương
-intervals_pos = isolate_roots(f2, 0.0, 5.0, step=0.5)
+intervals_pos = isolate_roots(f2_app, 0.0, 5.0, step=0.5)
 print(f"\nCác khoảng chứa nghiệm dương tìm được: {intervals_pos}")
 a2, b2 = intervals_pos[0] # Khoảng nghiệm dương nhỏ nhất [1.0, 1.5] hoặc [1.0, 2.0]
 a2, b2 = 1.1, 1.5
 print(f"Chọn khoảng phân ly cho nghiệm dương nhỏ nhất: [{a2}, {b2}]")
 print("\nKiểm tra khoảng phân ly nghiệm")
-check_isolate_roots(f2, a2, b2)
+check_isolate_roots(f2_app, a2, b2)
 # Phương pháp chia đôi
 print("\nPhương pháp chia đôi (eps = 1e-5)")
-x2_bi, k2_bi, err2_bi, df2_bi = bisection_history(f2, a2, b2, eps=1e-5, n_max=50)
+x2_bi, k2_bi, err2_bi, df2_bi = bisection_history(f2_app, a2, b2, eps=1e-5, n_max=50)
 print(df2_bi.to_string(index=False))
 print(f"\n-> Nghiệm gần đúng tại bước {k2_bi}: x = {x2_bi:.6f}")
 print(f"-> Sai số tại bước {k2_bi}: err = {err2_bi:.6f}")
@@ -563,7 +563,7 @@ n2_min = bisection_steps(a2, b2, eps=1e-5)
 print(f"-> Số bước lặp tối thiểu để đạt eps = 1e-5: {n2_min} bước lặp.")
 # Phương pháp dây cung
 print("\nPhương pháp dây cung (eps = 1e-5)")
-x2_fp, k2_fp, err2_fp, df2_fp = false_position_history(f2, a2, b2, eps=1e-5, n_max=50)
+x2_fp, k2_fp, err2_fp, df2_fp = false_position_history(f2_app, a2, b2, eps=1e-5, n_max=50)
 print(df2_fp.to_string(index=False))
 print(f"\n-> Nghiệm gần đúng tại bước {k2_fp}: x = {x2_fp:.6f} ")
 print(f"-> Sai số tại bước {k2_fp}: err = {err2_fp:.6f}")

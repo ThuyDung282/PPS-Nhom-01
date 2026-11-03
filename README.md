@@ -10,4 +10,4 @@
 | **SV5** | Lê Thị Tâm | Viết bộ kiểm thử cho toàn nhóm, test ca biên, test chéo | `test_sv5_functions.py` |
 | **SV6** | Đỗ Yến Nhi | Chạy thực nghiệm so sánh, lập bảng sai số, vẽ đồ thị, nhận xét | `Thuc nghiem so sanh` |
 | **SV7** | Phạm Mai Phương | Bài toán ứng dụng: mô hình hóa, nạp dữ liệu, phân tích kết quả | `ung_dung.py` |
-| **SV8** | Bùi Thuỳ Dung | Tạo repo, chuẩn mã, tích hợp, viết README, gộp báo cáo/slide | `Chuan ma, Tich hop`, `README.md` |
+| **SV8** | Bùi Thuỳ Dung | Tạo repo, chuẩn mã, tích hợp, viết README, gộp báo cáo/slide | `Chuan ma_Tich hop.py`, `README.md` |

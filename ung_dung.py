@@ -99,7 +99,6 @@ x1, k1, err1, df1 = bisection_history(f1, -1.0, 0.0, eps=1e-6, n_max=6)
 print(df1.to_string(index=False)) # In ra bảng lịch sử các bước lặp
 print(f"\n-> Nghiệm gần đúng tại bước {k1}: x = {x1:.6f}")
 print(f"-> Sai số tại bước {k1}: err = {err1:.6f}")
-print(f"-> Đánh giá sai số lý thuyết bước {k1}: (b - a)/2^6 = (0 - (-1))/64 = {1/64:.6f}")
 n1_min = bisection_steps(-1.0, 0.0, eps=1e-6)
 print(f"-> Số bước lặp tối thiểu để đạt eps = 1e-6: {n1_min} bước lặp.")
 # Phương pháp dây cung
@@ -130,7 +129,6 @@ x2_bi, k2_bi, err2_bi, df2_bi = bisection_history(f2, a2, b2, eps=1e-5, n_max=50
 print(df2_bi.to_string(index=False))
 print(f"\n-> Nghiệm gần đúng tại bước {k2_bi}: x = {x2_bi:.6f}")
 print(f"-> Sai số tại bước {k2_bi}: err = {err2_bi:.6f}")
-print(f"-> Đánh giá sai số lý thuyết bước {k2_bi}: e = (b - a)/2^(k+1) = {(b2 - a2) / (2**(k2_bi + 1)):.6f}")
 n2_min = bisection_steps(a2, b2, eps=1e-5)
 print(f"-> Số bước lặp tối thiểu để đạt eps = 1e-5: {n2_min} bước lặp.")
 # Phương pháp dây cung

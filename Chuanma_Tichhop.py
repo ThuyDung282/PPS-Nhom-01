@@ -201,7 +201,7 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
     if fa * fb > 0: # Kiểm tra điều kiện đổi dấu
         raise ValueError("Khoảng [a, b] không thỏa mãn f(a)*f(b) < 0.")
     # Chọn điểm xuất phát
-    if fa < 0: # dòng 5,6 - Thuật toán 6
+    if fa < 0: # dòng 3,6 - Thuật toán 6
         x0 = a
     else:
         x0 = b
@@ -258,7 +258,7 @@ def test_isolate_roots_finds_all_three_cubic_roots():
         assert f2(a) * f2(b) < 0
 def test_isolate_roots_returns_empty_for_interval_without_root():
     """ Kiểm tra trường hợp phương trình thứ nhất không có nghiệm trong đoạn khảo sát [1, 2]. """
-    intervals = isolate_roots(f1, 1, 2, 0.1)
+    intervals = isolate_roots(f1, 1, 2, 0.1) # Tìm các khoảng phân ly nghiệm với bước chia 0.1
     assert intervals == []
 @pytest.mark.parametrize(
     "a, b, step",
@@ -285,11 +285,11 @@ def test_bisection_solves_first_equation():
 @pytest.mark.parametrize("a, b, expected",CUBIC_ROOTS,)
 def test_bisection_solves_three_cubic_roots(a, b, expected):
     """ Kiểm tra phương pháp chia đôi tìm đủ ba nghiệm của phương trình 5x^3 - 20x + 3 = 0. """
-    x, k, err = bisection(f2, a, b, eps=1e-8, n_max=200)
-    assert math.isclose(x, expected, abs_tol=2e-6)
-    assert abs(f2(x)) < 1e-5
-    assert k > 0
-    assert err < 1e-8
+    x, k, err = bisection(f2, a, b, eps=1e-8, n_max=200) # Tìm nghiệm gần đúng với eps = 1e-8 và n_max = 200
+    assert math.isclose(x, expected, abs_tol=2e-6) # So sánh nghiệm gần đúng với nghiệm tham chiếu
+    assert abs(f2(x)) < 1e-5 # Kiểm tra giá trị hàm tại nghiệm gần bằng 0
+    assert k > 0 # Kiểm tra số bước lặp dương
+    assert err < 1e-8 # Kiểm tra sai số nhỏ hơn eps
 def test_bisection_returns_exact_left_endpoint_root():
     """ Kiểm tra trường hợp nghiệm nằm tại đầu trái. Tạo hàm từ phương trình thứ nhất để có nghiệm chính xác tại x = -1. """
     g = lambda x: f1(x) - f1(-1) # Tạo hàm g có nghiệm chính xác tại x = -1
@@ -302,8 +302,8 @@ def test_bisection_returns_exact_right_endpoint_root():
     g = lambda x: f1(x) - f1(0) # Tạo hàm g có nghiệm chính xác tại x = 0
     x, k, err = bisection(g, -1, 0, eps=1e-8, n_max=200)
     assert x == 0.0 # Kiểm tra nghiệm trả về chính xác là 0
-    assert k == 0
-    assert err == 0.0
+    assert k == 0 # Kiểm tra số bước lặp là 0
+    assert err == 0.0 # Kiểm tra sai số là 0
 def test_bisection_rejects_interval_without_sign_change():
     """ Kiểm tra trường hợp khoảng khảo sát không thỏa mãn điều kiện hai đầu mút trái dấu. """
     with pytest.raises(ValueError):
@@ -336,11 +336,11 @@ def test_false_position_solves_first_equation():
 @pytest.mark.parametrize("a, b, expected", CUBIC_ROOTS,)
 def test_false_position_solves_three_cubic_roots(a, b, expected):
     """ Kiểm tra phương pháp dây cung tìm ba nghiệm của phương trình 5x^3 - 20x + 3 = 0. """
-    x, k, err = false_position(f2, a, b, eps=1e-8, n_max=200)
-    assert math.isclose(x, expected, abs_tol=2e-6)
-    assert abs(f2(x)) < 1e-5
-    assert k > 0
-    assert err < 1e-8
+    x, k, err = false_position(f2, a, b, eps=1e-8, n_max=200) # Tìm nghiệm gần đúng với eps = 1e-8, n_max = 200 
+    assert math.isclose(x, expected, abs_tol=2e-6) # So sánh nghiệm gần đúng với nghiệm tham chiếu
+    assert abs(f2(x)) < 1e-5 # Kiểm tra giá trị hàm tại nghiệm gần bằng 0
+    assert k > 0 # Kiểm tra số bước lặp dương
+    assert err < 1e-8 # Kiểm tra sai số nhỏ hơn eps
 def test_false_position_returns_exact_left_endpoint_root():
     """ Kiểm tra trường hợp nghiệm nằm tại đầu trái bằng cách tạo hàm từ phương trình thứ nhất. """
     g = lambda x: f1(x) - f1(-1) # Tạo hàm g có nghiệm chính xác tại x = -1
@@ -350,11 +350,11 @@ def test_false_position_returns_exact_left_endpoint_root():
     assert err == 0.0 # Kiểm tra sai số là 0
 def test_false_position_returns_exact_right_endpoint_root():
     """ Kiểm tra trường hợp nghiệm nằm tại đầu phải bằng cách tạo hàm từ phương trình thứ nhất. """
-    g = lambda x: f1(x) - f1(0)
-    x, k, err = false_position(g, -1, 0, eps=1e-5, n_max=50)
-    assert x == 0.0
-    assert k == 0
-    assert err == 0.0
+    g = lambda x: f1(x) - f1(0) # Tạo hàm g có nghiệm chính xác tại x = 0
+    x, k, err = false_position(g, -1, 0, eps=1e-5, n_max=50) # Tìm nghiệm gần đúng với eps = 1e-5 và n_max = 50
+    assert x == 0.0 # Kiểm tra nghiệm trả về chính xác là 0
+    assert k == 0 # Kiểm tra số bước lặp là 0
+    assert err == 0.0 # Kiểm tra sai số là 0
 def test_false_position_rejects_interval_without_sign_change():
     """ Kiểm tra trường hợp khoảng khảo sát không có hai đầu mút trái dấu. """
     with pytest.raises(ValueError): false_position(f1, 1, 2, 1e-5, 50)
@@ -411,7 +411,7 @@ def test_false_position_error_rejects_M1_smaller_than_m1():
     """ Kiểm tra hàm từ chối trường hợp M1 nhỏ hơn m1. """
     with pytest.raises(ValueError): false_position_error(1.4, 1.3, 5, 2)
 
-#!pip install ipytest (bỏ # nếu chưa cài)
+#!pip install ipytest #(bỏ # nếu chưa cài)
 import ipytest
 # Chạy lại tất cả các bài kiểm thử để kiểm tra xem lỗi đã được khắc phục hoàn toàn chưa
 ipytest.run("-v")
@@ -447,7 +447,7 @@ if __name__ == "__main__":
 # 5. BÀI ỨNG DỤNG
 # Đánh giá sai số (số bước lặp tối thiểu): def bisection_steps(a, b, eps)
 # Phương pháp chia đôi, có bảng tính
-def bisection_history(f, a, b, eps=1e-5, n_max=50):
+def bisection_history(f, a, b, eps=1e-5, n_max=50): 
     history = []
     for i in range(0, n_max + 1):
         x = (a + b) / 2.0
@@ -461,7 +461,7 @@ def bisection_history(f, a, b, eps=1e-5, n_max=50):
             "f(x)": round(fx, 6),
             "Sai số": round(err, 6)
         })
-        if err <= eps or fx == 0:
+        if err <= eps or fx == 0: 
             return x, i, err, pd.DataFrame(history)
         if f(a) * fx < 0: # Thu hẹp khoảng phân ly
             b = x

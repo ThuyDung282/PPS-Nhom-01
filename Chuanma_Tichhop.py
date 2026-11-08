@@ -590,7 +590,7 @@ def make_f3(A, P=500.0, N=60):
     return f
 f3 = make_f3(A=12.0)
 # Kiểm tra khoảng phân ly r trong [0.001, 0.03] (0.1%/tháng - 3%/tháng)
-print("Kiểm tra khoảng phân ly nghiệm r (với A = 12 triệu) ---")
+print("Kiểm tra khoảng phân ly nghiệm r (với A = 12 triệu)")
 check_isolate_roots(f3, 0.001, 0.03)
 # Giải tìm r bằng 2 phương pháp với eps = 1e-8
 print("\nPhương pháp chia đôi")

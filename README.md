@@ -7,7 +7,7 @@
 | **SV2** | Ngô Việt Hưng | Phương pháp chia đôi, viết docstring và báo cáo P2 | `bisection.py` |
 | **SV3** | Mai Thị Quỳnh Hoa | Phương pháp dây cung, viết docstring và báo cáo P3 | `false_position.py` |
 | **SV4** | Đỗ Hồng Vân | Đánh giá sai số, viết docstring và báo cáo P4 | `error_estimation.py` |
-| **SV5** | Lê Thị Tâm | Viết bộ kiểm thử cho toàn nhóm, test ca biên, test chéo | `test_sv5_functions.py` |
-| **SV6** | Đỗ Yến Nhi | Chạy thực nghiệm so sánh, lập bảng sai số, vẽ đồ thị, nhận xét | `Thuc nghiem so sanh` |
+| **SV5** | Lê Thị Tâm | Viết bộ kiểm thử cho toàn nhóm, test ca biên, test chéo | `test_functions.py` |
+| **SV6** | Đỗ Yến Nhi | Chạy thực nghiệm so sánh, lập bảng sai số, vẽ đồ thị, nhận xét | `so_sanh.py` |
 | **SV7** | Phạm Mai Phương | Bài toán ứng dụng: mô hình hóa, nạp dữ liệu, phân tích kết quả | `ung_dung.py` |
-| **SV8** | Bùi Thuỳ Dung | Tạo repo, chuẩn mã, tích hợp, viết README, gộp báo cáo/slide | `Chuan ma, Tich hop`, `README.md` |
+| **SV8** | Bùi Thuỳ Dung | Tạo repo, chuẩn mã, tích hợp, viết README, gộp báo cáo/slide | `Chuanma_Tichhop.py`, `README.md` |

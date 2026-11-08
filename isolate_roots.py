@@ -57,3 +57,47 @@ def isolate_roots(f, a, b, step) -> list[tuple[float, float]]:
 
   # dong 12 - Tra ve danh sach cac khoang cach ly tim duoc
   return intervals
+  
+  def check_isolate_roots(f, a, b, step=0.01) -> bool:
+    """
+    Kiểm tra (a, b) có phải là khoảng phân ly nghiệm của f(x) hay không.
+    Điều kiện:
+      1. f(a) * f(b) < 0 (f(x) có nghiệm trong khoảng)
+      2. f'(x) không đổi dấu trên (a, b) (hàm số đơn điệu, đảm bảo nghiệm duy nhất)
+    """
+    # dong 13 - Tinh gia tri ham so tai hai dau mut a va b
+  fa, fb = f(a), f(b)
+
+  # dong 14 - Kiem tra dieu kien co nghiem: f(a) * f(b) < 0
+  if fa * fb >= 0:
+    print(f"[-] LOẠI ({a}, {b}): f({a}) * f({b}) >= 0 (Không đảm bảo có nghiệm).")
+    return False
+
+  # dong 15 - Chon buoc vi phan h = 1e-5 de tinh xap xi dao ham
+  h = 1e-5
+
+  # dong 16 - Tao mang cac diem x tren khoang (a, b) voi buoc nhay step
+  xs = np.arange(a, b, step)
+
+  # dong 17 - Tinh xap xi dao ham f'(x) tai moi diem x bang sai phan trung tam
+  df_vals = [(f(x + h) - f(x - h)) / (2 * h) for x in xs]
+
+  # dong 18 - Kiem tra dao ham f'(x) co luon duong (> 0) tren toan khoang hay khong
+  is_always_positive = all(d > 0 for d in df_vals)
+
+  # dong 19 - Kiem tra dao ham f'(x) co luon am (< 0) tren toan khoang hay khong
+  is_always_negative = all(d < 0 for d in df_vals)
+
+  # dong 20 - Neu f'(x) luon duong hoac luon am, ham so don dieu => nghiem duy nhat
+  if is_always_positive or is_always_negative:
+    print(f"[+] HỢP LỆ: ({a}, {b}) là khoảng phân ly nghiệm.")
+    print(f"    - Có nghiệm: f({a}) = {fa:.6f}, f({b}) = {fb:.6f} (Trái dấu)")
+    print(f"    - Nghiệm duy nhất: f'(x) không đổi dấu trên ({a}, {b}).")
+    return True
+  else:
+    # dong 21 - Neu f'(x) doi dau, ham khong don dieu => canh bao co the co > 1 nghiem
+    print(
+        f"[!] CẢNH BÁO: f(x) đổi dấu trên ({a}, {b}) nhưng f'(x) không đơn"
+        " điệu (có thể có >1 nghiệm)."
+    )
+    return False

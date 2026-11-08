@@ -708,8 +708,8 @@ print("""\n>>> NHẬN XÉT:
 1. Tính chính xác của lý thuyết: Số bước lặp chia đôi thực tế hoàn toàn khớp hoặc
    chênh lệch không quá 1 bước so với công thức đánh giá theo lý thuyết.
 2. Ưu thế của Dây cung ở điều kiện thường: Đối với cả 3 bài toán trơn, Dây cung
-   hội tụ cực nhanh. Khi siết sai số xuống 10^-10, Chia đôi mất hơn 30 bước,
-   trong khi Dây cung chỉ cần từ 3 - 5 bước là đạt độ chính xác tuyệt đối.
+   hội tụ cực nhanh. Khi siết sai số xuống 10^-10, Chia đôi mất 28-30 bước,
+   trong khi Dây cung chỉ cần từ 5-15 bước là đạt độ chính xác tuyệt đối.
 """)
 
 # D. VẼ ĐỒ THỊ SAI SỐ TRÊN THANG LOG

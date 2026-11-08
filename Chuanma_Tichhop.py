@@ -226,7 +226,7 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
         x_prev = xn # Cập nhật nghiệm trước đó cho bước lặp tiếp theo
         # dòng 13 - Thuật toán 6: end for
     warnings.warn("Chưa đạt sai số yêu cầu sau số bước lặp tối đa", RuntimeWarning) # Cảnh báo nếu hết n_max bước mà chưa đạt eps
-    return float(xn), n_max, float(err) # Trả về nghiệm gần đúng, số bước lặp và sai số
+    return float(xn), i, float(err) # Trả về nghiệm gần đúng, số bước lặp và sai số
 
 # 4. BỘ KIỂM THỬ
 print ("BỘ KIỂM THỬ:")
@@ -467,7 +467,7 @@ def bisection_history(f, a, b, eps=1e-5, n_max=50):
             b = x
         else:
             a = x
-    return float(x), n_max, float(err), pd.DataFrame(history)
+    return float(x), i, float(err), pd.DataFrame(history)
 # Phương pháp dây cung, có bảng tính
 def false_position_history(f, a, b, eps=1e-5, n_max=50):
     fa, fb = f(a), f(b)
@@ -515,7 +515,7 @@ def false_position_history(f, a, b, eps=1e-5, n_max=50):
         if err < eps:
             return xn, i, err, pd.DataFrame(history)
         x_prev = xn
-    return float(xn), n_max, float(err), pd.DataFrame(history)
+    return float(xn), i, float(err), pd.DataFrame(history)
 
 print ("\n5. BÀI TOÁN ỨNG DỤNG")
 """
@@ -675,7 +675,7 @@ def false_position_2(f, a, b, eps=1e-5, n_max=50):
         if err < eps:
             return xn, i, err, pd.DataFrame(history)
         x_prev = xn
-    return float(xn), n_max, float(err), pd.DataFrame(history)
+    return float(xn), i, float(err), pd.DataFrame(history)
 
 # B. KHAI BÁO 3 BÀI TOÁN KIỂM THỬ
 #def f1(x): return 2**x - 5*x - 3

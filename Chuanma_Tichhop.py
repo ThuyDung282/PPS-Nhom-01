@@ -141,7 +141,7 @@ def bisection(f, a, b, eps, n_max) -> tuple[float, int, float]:
         warnings.warn(f"Hết n_max={n_max} bước nhưng chưa đạt sai số eps={eps} (err={err}).", UserWarning)
     x = (a + b) / 2 # trung điểm của khoảng sau khi thu hẹp
     err = (b - a) / 2 # sai số tại bước lặp cuối cùng
-    return float(x), n_max, float(err) # dòng 16 - Thuật toán 4: Trả về nghiệm gần đúng, số bước lặp và sai số
+    return float(x), i, float(err) # dòng 16 - Thuật toán 4: Trả về nghiệm gần đúng, số bước lặp và sai số
 
 # 3. PHƯƠNG PHÁP DÂY CUNG & ĐÁNH GIÁ SAI SỐ
 # Đánh giá sai số

@@ -96,4 +96,4 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
     warnings.warn("Chưa đạt sai số yêu cầu sau số bước lặp tối đa", RuntimeWarning)
 
     # dong 14: return xn , i, err
-    return float(xn), n_max, float(err) 
+    return float(xn), i, float(err) 

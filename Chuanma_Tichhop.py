@@ -194,7 +194,7 @@ def false_position(f, a, b, eps, n_max) -> tuple[float, int, float]:
         raise ValueError("n_max phải là số nguyên dương.")
     fa = f(a)
     fb = f(b)
-    # Ttrường hợp đầu mút là nghiệm
+    # Trường hợp đầu mút là nghiệm
     if fa == 0: return float(a), 0, 0.0
     if fb == 0: return float(b), 0, 0.0
     if fa * fb > 0: # Kiểm tra điều kiện đổi dấu
@@ -233,10 +233,6 @@ def f1(x): return 2**x - 5*x - 3
 def f2(x): return 5*x**3 - 20*x + 3
 # Danh sách các khoảng chứa nghiệm và nghiệm tham chiếu gần đúng của f2
 CUBIC_ROOTS = [(-2.1, -2.0, -2.071157),(0.1, 0.2, 0.150858),(1.9, 2.0, 1.920299)]
-# Tự động chạy hàm test với f1 và f2
-@pytest.mark.parametrize("function", [f1, f2])
-def test_nghiem(function):
-    assert function(0) != 0
 
 # KIỂM THỬ TÌM KHOẢNG PHÂN LY NGHIỆM
 def test_khoang_phan_ly_f1():
@@ -261,6 +257,8 @@ def test_f1_khong_co_nghiem(): # Kiểm tra f1 không có nghiệm trong (1,2)
     assert intervals == []
 def test_f2_khong_co_nghiem(): # Kiểm tra f1 không có nghiệm trong (3,4)
     assert isolate_roots(f2, 3, 4, 0.1) == []
+
+@pytest.mark.parametrize("function", [f1, f2])
 @pytest.mark.parametrize(
     "a, b, step",
     [
@@ -314,9 +312,13 @@ def test_bi_nghiem_tai_b_f2(): # Kiểm tra nghiệm tại b với f2
     assert x == b
     assert k == 0
     assert err == 0.0
+
+@pytest.mark.parametrize("function", [f1, f2])
 def test_bi_khong_trai_dau(function): # Kiểm tra điều kiện trái dấu
     with pytest.raises(ValueError):
         bisection(function, 3, 4, eps=1e-5, n_max=50)
+
+@pytest.mark.parametrize("function", [f1, f2])
 @pytest.mark.parametrize(
     "a, b, eps, n_max",
     [
@@ -373,12 +375,16 @@ def test_fp_nghiem_tai_b_f2(): # Kiểm tra nghiệm tại b với f2
     assert x == b
     assert k == 0
     assert err == 0.0
+
+@pytest.mark.parametrize("function", [f1, f2])
 def test_fp_khoang_khong_thoa_man(function): # Kiểm tra trường hợp khoảng khảo sát không thỏa mãn điều kiện trái dấu
     with pytest.raises(ValueError): false_position(function, 3, 4, 1e-5, 50)
 def test_fp_kp_ham_so(): # Kiểm tra f kp hàm số
-    with pytest.raises(TypeError): false_position(123, -1, 0)
+    with pytest.raises(TypeError): false_position(123, -1, 0, 1e-5, 50)
 def test_fp_warn_het_buoc_lap_f1(): # Kiểm tra cảnh báo khi dây cung hết bước lặp mà chưa đạt sai số
     with pytest.warns(RuntimeWarning): false_position(f1, -1, 0, eps=1e-15, n_max=1)
+
+@pytest.mark.parametrize("function", [f1, f2])
 @pytest.mark.parametrize(
     "a, b, eps, n_max",
     [
